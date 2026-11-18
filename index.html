@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Luminos — il mondo de «I quattro Guardiani e il regno perduto della Luce»</title>
+<meta name="description" content="Entra nel mondo de «I quattro Guardiani e il regno perduto della Luce»: parti dal molo di Marechiaro, entra nella Grotta dei Sussurri, prendi la tua pietra e arriva a Luminos.">
+<meta name="theme-color" content="#14122b">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Entra a Luminos · I quattro Guardiani e il regno perduto della Luce">
+<meta property="og:description" content="Parti dal molo di Marechiaro, entra nella Grotta dei Sussurri, prendi la tua pietra e cammina a Luminos. Il mondo del libro di Nicola Gobbini.">
+<meta property="og:image" content="https://blunikoblu.github.io/iquattroguardiani/img/copertina.jpg">
+<meta property="og:url" content="https://blunikoblu.github.io/iquattroguardiani/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="img/copertina.jpg">
+<link rel="stylesheet" href="css/luminos.css?v=202611182305">
+</head>
+<body>
+<canvas id="scene" aria-label="Mondo in 3D di Luminos. Per una versione senza 3D usa Menu, poi Elenco dei luoghi." role="img"></canvas>
+
+<div id="intro">
+  <div id="intro1">
+    <div class="k">I QUATTRO GUARDIANI</div>
+    <h1>Entra a Luminos</h1>
+    <p>Prima di aprire il libro, puoi già camminarci dentro. Si parte dal molo di Marechiaro, ad agosto. Si prende il mare fino alla Grotta dei Sussurri, dove entrano in pochi. E oltre la grotta c'è un mondo dove la luce sta svanendo.</p>
+    <p class="countline" id="introCount"></p>
+    <button class="go" id="go1" type="button">Entra</button>
+    <div><button class="link" id="introSignup" type="button">Avvisami quando esce il libro</button></div>
+    <div class="author">«I quattro Guardiani e il regno perduto della Luce» · un romanzo di Nicola Gobbini</div>
+  </div>
+  <form id="intro2" hidden autocomplete="off">
+    <h2>Scegli il tuo Guardiano</h2>
+    <div class="sub">Niente registrazione, niente dati personali.</div>
+    <canvas id="avPreview" aria-hidden="true"></canvas>
+    <div class="form">
+      <div class="chips" id="avChoices"></div>
+      <div class="hint center" id="avDesc"></div>
+      <label>Il tuo nome a Luminos</label>
+      <div class="nome"><span id="nomeMondo"></span><button type="button" class="chip" id="rerollNome" aria-label="Cambia nome">🎲 Cambia</button></div>
+      <div class="hint">Lo vedono gli altri visitatori. È un nome di Luminos, scelto a caso: così nessuno usa il proprio nome vero.</div>
+    </div>
+    <button class="go" type="submit">Scendi al molo</button>
+    <div class="privacy">Per incontrare gli altri visitatori uso un accesso anonimo temporaneo: nessuna email, nessun dato personale. Non c'è una chat: ci si saluta solo con reazioni e frasi già pronte. La posizione è visibile solo a chi è connesso in quel momento e non viene salvata.</div>
+  </form>
+</div>
+
+<div class="hud">
+  <div class="lcol">
+    <div class="l" id="hudL">LUMINOS</div>
+    <button class="pill" id="secretsBtn" type="button" hidden aria-label="Il tuo taccuino">📓 <span id="secretsN">0/0</span></button>
+  </div>
+  <div class="r">
+    <button class="pill" id="countBtn" type="button"><span class="dot wait" id="netDot"></span><span id="countN">1</span><span class="t">online</span></button>
+    <button class="pill" id="menuBtn" type="button" aria-label="Menu">☰<span class="t">Menu</span></button>
+  </div>
+</div>
+<div id="netStatus" hidden role="status"></div>
+<div id="areaTag" aria-live="polite"></div>
+<div id="toasts" aria-live="polite"></div>
+<div id="cross" aria-hidden="true"></div>
+<button id="prompt" type="button" hidden>Apri</button>
+<div id="help"></div>
+<div id="emoteBox">
+  <div id="emotes" hidden aria-label="Reazioni e frasi"></div>
+  <button id="moreBtn" type="button" aria-label="Reazioni e frasi pronte" aria-expanded="false">💬</button>
+  <button id="waveBtn" type="button" aria-label="Saluta">👋</button>
+</div>
+<div id="joy" hidden aria-hidden="true"><div id="knob"></div></div>
+
+<div id="panel" hidden><div id="card" role="dialog" aria-modal="true"></div></div>
+
+<script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
+<script type="module" src="js/main.js?v=202611182305"></script>
+</body>
+</html>
