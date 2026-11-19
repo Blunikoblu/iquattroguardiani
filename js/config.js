@@ -18,7 +18,7 @@ export const NET = {
 };
 
 // Limiti dell'intero mondo (per validare le posizioni che arrivano dalla rete).
-export const WORLD = { x0: -40, x1: 460, z0: -45, z1: 30 };
+export const WORLD = { x0: -40, x1: 960, z0: -50, z1: 40 };
 
 // I personaggi: i quattro Guardiani. Ogni visitatore ne sceglie uno (anche più visitatori lo stesso).
 // col = colore della pietra, come nel libro: blu, bianca, marrone, verde.
@@ -66,4 +66,11 @@ export const ZONES = {
   giardini: { nome: 'I Giardini Sospesi', regione: 'L' },
   arena: { nome: "Il Giardino dell'Equilibrio", regione: 'L' },
   belvedere: { nome: 'Il belvedere dei quattro cammini', regione: 'L' },
+  scogli: { nome: 'Gli scogli di ponente', regione: 'M' },
+  sala: { nome: 'La sala dietro la porta', regione: 'G' },
+  percorso: { nome: 'Il ponte sospeso', regione: 'L' },
+  selva: { nome: 'La Selva di Maestrale', regione: 'V' },
+  monte: { nome: 'Il Monte Zavorra', regione: 'Z' },
+  risacca: { nome: 'La Risacca', regione: 'R' },
+  solaria: { nome: 'Solaria, la Città di Luce', regione: 'S' },
 };

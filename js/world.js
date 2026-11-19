@@ -7,10 +7,10 @@
 // Si vede solo la regione in cui ti trovi (più leggero sui telefoni).
 // I pannelli sono costruiti con h() (DOM + textContent): niente innerHTML.
 import * as THREE from 'three';
-import { AVATARS } from './config.js?v=202611191110';
-import { h, wrapText } from './util.js?v=202611191110';
-import { Avatar } from './avatars.js?v=202611191110';
-import { drawRune } from './secrets.js?v=202611191110';
+import { AVATARS } from './config.js?v=202611191213';
+import { h, wrapText } from './util.js?v=202611191213';
+import { Avatar } from './avatars.js?v=202611191213';
+import { drawRune } from './secrets.js?v=202611191213';
 
 const GOLD = 0xf5c56b;
 let seed = 11;
@@ -37,9 +37,10 @@ export const AREAS = [
   { id: 'belvedere', x0: 432, x1: 446, z0: 20, z1: 26 },
 ];
 export function zoneOf(x, z) {
-  if (x < 100) return 'marechiaro';
-  if (x < 300) return z > 1.1 ? 'grotta' : 'lago';
-  if (x < 413) return 'spiaggia';
+  if (x < 100) return x < -12.0 ? 'scogli' : 'marechiaro';
+  if (x < 300) return x > 232 ? 'sala' : z > 1.1 ? 'grotta' : 'lago';
+  if (x >= 550) return x < 650 ? 'selva' : x < 750 ? 'monte' : x < 850 ? 'risacca' : 'solaria';
+  if (x < 413) return z < -6.2 ? 'percorso' : 'spiaggia';
   if (x < 428.5) return 'ponte';
   if (z < -21.4) return 'arena';
   if (z < -7.6) return 'ponte';
@@ -47,7 +48,8 @@ export function zoneOf(x, z) {
   if (z > 12.4) return 'ponte';
   return 'giardini';
 }
-export const regionOf = x => x < 100 ? 'M' : x < 300 ? 'G' : 'L';
+// regioni: M Marechiaro, G grotta, L Luminos; i quattro cammini: V selva, Z monte, R risacca, S solaria
+export const regionOf = x => x < 100 ? 'M' : x < 300 ? 'G' : x < 550 ? 'L' : x < 650 ? 'V' : x < 750 ? 'Z' : x < 850 ? 'R' : 'S';
 
 // pseudo-ciclo del giorno a Luminos, uguale per tutti i visitatori: 16 minuti (giorno, tramonto, notte, alba)
 export function luminosDay(now = Date.now()) {
@@ -526,7 +528,7 @@ export function buildWorld(scene, data, hooks) {
     const glints = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xfff6d8, size: 0.09, transparent: true })); gL.add(glints);
     animated.push(t => { if (gL.visible) glints.material.opacity = 0.5 + Math.sin(t * 3.1) * 0.3; });
   }
-  edge(LX, 2, 18.2, 11.2, [0]);
+  edge(LX, 2, 18.2, 11.2, [0, -Math.PI / 2]); // varchi: il ponte di luce (est) e il ponte sospeso (sud)
   // la fila delle ceste vuote e le vecchie rocce con le rune, piantate nel sale
   for (let x = LX - 10; x <= LX + 10; x += 2.2) { mesh(new THREE.CylinderGeometry(0.32, 0.25, 0.45, 8), lam(0xb08a52), x, 0.22, -3.6, gL); solidR(x, -3.6, 0.35); }
   const runeRocks = [[LX - 12, 5], [LX - 7, 7.5], [LX + 6, 7.2], [LX + 11, 4.5], [LX - 13, -1], [LX + 12.5, -2.4]];
@@ -763,9 +765,13 @@ export function buildWorld(scene, data, hooks) {
     c.draw();
     solidR(gx, gz, 0.9);
     add({ id: 'cammino-' + c.id, name: c.nome, pos: [gx - Math.sin(c.dir) * 0.6, 1, gz - Math.cos(c.dir) * 0.6], radius: 1.9, markerY: 2.5, desc: 'Uno dei quattro cammini, ancora chiuso.',
-      open: () => [h('h2', {}, 'I quattro cammini'), h('h3', {}, c.nome),
+      open: () => apertura(c.id).aperto
+        ? [h('h2', {}, 'I quattro cammini'), h('h3', {}, c.nome), h('p', {}, 'Il ponte di luce si allunga oltre il cancello. Il cammino è aperto.'),
+          h('p', {}, h('button', { class: 'btn', type: 'button', onclick: () => hooks.travel('cammino-' + c.id) }, 'Attraversa il cammino'))]
+        : [h('h2', {}, 'I quattro cammini'), h('h3', {}, c.nome),
         h('p', {}, 'Laggiù, lontano, oltre il ponte di luce che si interrompe. Il cammino è ancora chiuso.'), h('p', { style: 'color:#f5c56b' }, apertura(c.id).lungo),
         h('p', { class: 'muted' }, 'I quattro cammini si aprono uno alla volta prima dell\'uscita del libro. Che cosa c\'è laggiù lo scoprirai camminandoci, o leggendo.')] });
+    c.veil = veil;
     // il luogo, lontano, sopra il mare di nubi
     const g = new THREE.Group(); g.position.set(tx, 4 + i * 3, tz); gL.add(g);
     mesh(new THREE.CylinderGeometry(14, 12, 3, 12), islandMat, 0, 0, 0, g); mesh(new THREE.ConeGeometry(12, 22, 12), islandUnder, 0, -12, 0, g).rotation.x = Math.PI;
@@ -793,7 +799,7 @@ export function buildWorld(scene, data, hooks) {
     stars.material.opacity = night * 0.95; lampare.material.opacity = night;
   });
   // la luce di Luminos (di notte resta un blu profondo: a Luminos il buio vero non arriva mai)
-  const FOG_L_DAY = new THREE.Color(0xe8c8d8), FOG_L_NIGHT = new THREE.Color(0x1e2a64);
+  const FOG_L_DAY = new THREE.Color(0xe8c8d8), FOG_L_NIGHT = new THREE.Color(0x1e2a64), TIDE_GOLD = new THREE.Color(0xffd890);
 
   // ---------- pannelli condivisi ----------
   function countdown() {
@@ -806,7 +812,7 @@ export function buildWorld(scene, data, hooks) {
     const d = data.aperture?.[id], u = d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(d + 'T00:00:00') : null;
     if (!u) return { testo: 'si apre più avanti', lungo: 'Si apre più avanti, prima dell\'uscita del libro.' };
     const now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate()), g = Math.round((u - today) / 86400000);
-    if (g <= 0) return { testo: 'presto', lungo: 'Sta per aprirsi.' };
+    if (g <= 0) return { testo: 'aperto', lungo: 'Il cammino è aperto.', aperto: true };
     return { testo: `si apre tra ${g} ${g === 1 ? 'giorno' : 'giorni'}`, lungo: `Si apre il ${u.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}.` };
   }
   setInterval(() => CAMMINI.forEach(c => c.draw()), 3600000);
@@ -828,14 +834,16 @@ export function buildWorld(scene, data, hooks) {
 
   // ---------- regioni ----------
   function setRegion(region, z) {
-    gM.visible = region === 'M' || (region === 'G' && z > 12);
+    gM.visible = region === 'M' || (region === 'G' && z > 12 && z < 60);
     gG.visible = region === 'G';
     gL.visible = region === 'L';
   }
   function fogFor(zona, z) {
-    if (zona === 'marechiaro' || (zona === 'grotta' && z > 15.5)) return { c: 0xcfe4f4, near: 60, far: 320 };
-    if (zona === 'grotta' || zona === 'lago') return { c: 0x05070e, near: 5, far: zona === 'lago' ? 42 : 22 };
-    return { c: FOG_L_NIGHT.clone().lerp(FOG_L_DAY, 1 - night).getHex(), near: 45, far: 300 };
+    if (zona === 'marechiaro' || zona === 'scogli' || (zona === 'grotta' && z > 15.5)) return { c: 0xcfe4f4, near: 60, far: 320 };
+    if (zona === 'grotta' || zona === 'lago' || zona === 'sala') return { c: 0x05070e, near: 5, far: zona === 'grotta' ? 22 : 42 };
+    // durante la marea di luce il cielo di Luminos si scalda verso l'oro
+    const st = tideState(), glowK = st.on ? Math.sin(st.t / 9 * Math.PI) : 0;
+    return { c: FOG_L_NIGHT.clone().lerp(FOG_L_DAY, 1 - night).lerp(TIDE_GOLD, glowK * 0.6).getHex(), near: 45, far: 300 };
   }
 
   return {
@@ -844,7 +852,9 @@ export function buildWorld(scene, data, hooks) {
     points: {
       grotta: { x: GX, z: 19.5, yaw: 0 }, luminos: { x: LX - 8, z: 2, yaw: -Math.PI / 2 }, grottaDaLuminos: { x: GX, z: CZ - 3.5, yaw: Math.PI }, marechiaro: { x: 2.4, z: 7, yaw: Math.PI },
     },
-    marcoBoat, dolphins, stones, sea,
+    marcoBoat, dolphins, stones, sea, CAMMINI, apertura,
+    // attrezzi per costruire le attività e i nuovi luoghi negli altri moduli
+    kit: { mesh, lam, glow, box, canvasTex, sign, halo, haloTex, add, npc, solid, solidR, edge, animated, gM, gG, gL, islandMat, islandUnder, saltWhite, LX, GX, CZ, GXL, GZ, BX, BZ, PX, AX, AZ },
     openArch() { archOpen = true; },
     get archOpen() { return archOpen; },
     footRing, setRegion, fogFor, bookPanel, signupPanel,

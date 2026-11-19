@@ -4,8 +4,8 @@
 // - NIENTE testo libero: chi riceve accetta solo nomi e frasi che esistono già nelle liste del mondo.
 // - Accesso anonimo invisibile (sessione per scheda, in sessionStorage). Nessuna email, nessun dato personale.
 // - Se qualcosa non va: canale pubblico di ripiego, poi modalità individuale.
-import { SUPABASE_URL, SUPABASE_KEY, CHANNEL_PRIVATE, CHANNEL_PUBLIC, NET, AVATARS, EMOTES, FRASI, WORLD, ZONES, isNome } from './config.js?v=202611191110';
-import { clamp, randomId } from './util.js?v=202611191110';
+import { SUPABASE_URL, SUPABASE_KEY, CHANNEL_PRIVATE, CHANNEL_PUBLIC, NET, AVATARS, EMOTES, FRASI, WORLD, ZONES, isNome } from './config.js?v=202611191213';
+import { clamp, randomId } from './util.js?v=202611191213';
 
 const AV = new Map(AVATARS.map(a => [a.id, a]));
 const SAY_IDS = new Set([...EMOTES.map(e => e.id), ...FRASI.map(f => f.id)]);
@@ -20,7 +20,7 @@ export function createNet(h) {
   let last = { x: 0, z: 0, r: 0, a: 0, sent: 0, sx: 99, sz: 99, sr: 99, sa: 0 };
   let sbPromise = null, lastSay = 0;
   function client() {
-    sbPromise ||= import('../supabase.min.js?v=202611191110').then(({ createClient }) => (sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    sbPromise ||= import('../supabase.min.js?v=202611191213').then(({ createClient }) => (sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: { storage: window.sessionStorage, storageKey: 'luminos-auth', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
       realtime: { params: { eventsPerSecond: 20 }, heartbeatIntervalMs: 20000 },
     })));
@@ -61,9 +61,26 @@ export function createNet(h) {
 
   function onPos({ payload: p }) {
     if (!p || typeof p.i !== 'string' || !peers.has(p.i) || !allow(p.i)) return;
-    const x = +p.x, z = +p.z, r = +p.r;
-    if (!Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(r)) return;
-    h.onPos?.(p.i, clamp(x, WORLD.x0, WORLD.x1), clamp(z, WORLD.z0, WORLD.z1), Math.atan2(Math.sin(r), Math.cos(r)));
+    const x = +p.x, z = +p.z, r = +p.r, y = p.y == null ? 0 : +p.y;
+    if (!Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(r) || !Number.isFinite(y)) return;
+    h.onPos?.(p.i, clamp(x, WORLD.x0, WORLD.x1), clamp(z, WORLD.z0, WORLD.z1), Math.atan2(Math.sin(r), Math.cos(r)), clamp(y, -8, 12));
+  }
+  // Attività condivise: ogni tipo di messaggio ha il suo controllo. Niente testo libero, solo codici e numeri.
+  const G4 = new Set(['marco', 'sophia', 'giulia', 'luca']);
+  const sid = v => typeof v === 'string' && /^[a-z0-9-]{1,24}$/.test(v);
+  const num = (v, a, b) => typeof v === 'number' && Number.isFinite(v) && v >= a && v <= b;
+  const ACT = {
+    pw: d => G4.has(d.g) && (d.s == null || sid(d.s)),                         // potere usato (e punto attivato)
+    gara: d => (d.c === 'call' && sid(d.r) && num(d.in, 3, 20)) || (d.c === 'fine' && sid(d.r) && num(d.t, 0, 120)) || (d.c === 'via' && sid(d.r)),
+    mc: d => num(d.n, 0, 1e9) && Number.isInteger(d.n) && num(d.c, 0, 19) && Number.isInteger(d.c), // cristallo della marea
+    df: d => true,                                                              // richiamo dei tursiopi
+    'st?': d => true,                                                           // chi arriva chiede lo stato
+    st: d => (d.mc == null || (num(d.mc.n, 0, 1e9) && Array.isArray(d.mc.c) && d.mc.c.length <= 20 && d.mc.c.every(c => Number.isInteger(c) && c >= 0 && c < 20))) && (d.porta == null || (typeof d.porta === 'object' && ['m', 'l', 'g', 's'].every(k => d.porta[k] == null || num(d.porta[k], 0, 600)) && (d.porta.o == null || num(d.porta.o, 0, 600)))),
+  };
+  function onAct({ payload: p }) {
+    if (!p || typeof p.i !== 'string' || !peers.has(p.i) || !allow(p.i) || !ACT[p.k] || typeof p.d !== 'object' || !p.d) return;
+    try { if (!ACT[p.k](p.d)) return; } catch (e) { return; }
+    h.onAct?.(p.i, p.k, p.d);
   }
   function onSay({ payload: p }) {
     if (!p || typeof p.i !== 'string' || !peers.has(p.i) || !SAY_IDS.has(p.e) || !allow(p.i)) return;
@@ -83,7 +100,8 @@ export function createNet(h) {
     const c = sb.channel(priv ? CHANNEL_PRIVATE : CHANNEL_PUBLIC, { config: { private: priv, presence: { key: myId }, broadcast: { self: false, ack: false } } });
     c.on('presence', { event: 'sync' }, onSync)
      .on('broadcast', { event: 'pos' }, onPos)
-     .on('broadcast', { event: 'say' }, onSay);
+     .on('broadcast', { event: 'say' }, onSay)
+     .on('broadcast', { event: 'act' }, onAct);
     ch = c;
     return new Promise(resolve => {
       let done = false, up = false;
@@ -129,15 +147,16 @@ export function createNet(h) {
     }
   }
 
-  function sendPos(x, z, r, force = false) {
-    last.x = x; last.z = z; last.r = r;
+  function sendPos(x, z, r, force = false, y = last.y || 0) {
+    last.x = x; last.z = z; last.r = r; last.y = y;
     if (!ch || !(mode === 'online' || mode === 'online-pubblico')) return;
     const now = performance.now();
     if (now - last.sent < 1000 / NET.sendHz) return;
-    const moved = Math.abs(x - last.sx) + Math.abs(z - last.sz) + Math.abs(r - last.sr) > 0.015;
+    const moved = Math.abs(x - last.sx) + Math.abs(z - last.sz) + Math.abs(r - last.sr) + Math.abs(y - (last.sy || 0)) > 0.015;
     if (!force && !moved && now - last.sent < NET.heartbeatMs) return;
-    last.sent = now; last.sx = x; last.sz = z; last.sr = r;
-    ch.send({ type: 'broadcast', event: 'pos', payload: { i: myId, x: +x.toFixed(2), z: +z.toFixed(2), r: +r.toFixed(2) } });
+    last.sent = now; last.sx = x; last.sz = z; last.sr = r; last.sy = y;
+    const pl = { i: myId, x: +x.toFixed(2), z: +z.toFixed(2), r: +r.toFixed(2) }; if (Math.abs(y) > 0.01) pl.y = +y.toFixed(2);
+    ch.send({ type: 'broadcast', event: 'pos', payload: pl });
   }
   setInterval(() => sendPos(last.x, last.z, last.r), NET.heartbeatMs);
 
@@ -159,6 +178,14 @@ export function createNet(h) {
       const now = performance.now(); if (now - lastSay < 1200) return false; lastSay = now;
       if (ch && mode.startsWith('online')) ch.send({ type: 'broadcast', event: 'say', payload: target ? { i: myId, e: id, t: target } : { i: myId, e: id } });
       return true;
+    },
+    // attività condivise (vedi ACT): k = tipo, d = dati
+    act(k, d) { if (!ACT[k] || !ACT[k](d)) return false; if (ch && mode.startsWith('online')) ch.send({ type: 'broadcast', event: 'act', payload: { i: myId, k, d } }); return true; },
+    get online() { return !!ch && mode.startsWith('online'); },
+    // segnalazione anonima: nome di Luminos del giocatore, motivo da un elenco, luogo
+    async report(nick, motivo, zona) {
+      if (!isNome(nick) || !['gesti', 'disturbo', 'nome', 'altro'].includes(motivo)) return false;
+      try { await client(); if (!userId) return false; const { error } = await sb.from('segnalazioni').insert({ segnalato: nick, motivo, zona: ZONE_IDS.has(zona) ? zona : null }); return !error; } catch (e) { return false; }
     },
     async close() { closing = true; if (ch) try { await ch.untrack(); await sb.removeChannel(ch); } catch (e) {} },
   };

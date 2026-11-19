@@ -24,3 +24,13 @@ Solo contenuti fino al capitolo 5 del libro. Nessuna anticipazione oltre.
 - Dopo ogni modifica al codice: `sh tools/versione.sh` (aggiorna la versione degli script per i browser).
 
 Progetto separato dalla sfida Real Automata: account, repository e costi sono tutti suoi.
+
+## Dal 19/11/2026: poteri, diario, attività, quattro cammini
+- `js/powers.js` — i poteri delle pietre (tasto F o pulsante colorato). I luoghi registrano dei "punti" (`spot`) su cui il potere agisce.
+- `js/diario.js` — il taccuino: segreti, luoghi, rune, creature, oggetti, distintivi, mappa, prossimo indizio. Solo localStorage.
+- `js/attivita.js` — abitanti, creature, caccia alle rune (`js/rune.js`), gara condivisa, cristalli della marea, ponte sospeso, eco della grotta, porta invisibile, tursiopi.
+- `js/luoghi.js` — Selva di Maestrale, Monte Zavorra, Risacca, Solaria (senza trama). Si aprono secondo `data.json → aperture`.
+- `js/testi.js` — testi nuovi: `gioco` (attivi) e `storia` (spenti finché non approvati).
+- Rete: oltre a `pos` e `say`, l'evento `act` con tipi validati (`pw`, `gara`, `mc`, `df`, `st?`, `st`). Chi arriva chiede lo stato (`st?`) e chi c'è risponde.
+- Sicurezza: nascondi un Guardiano o tutti, spegni reazioni e inviti, segnala (tabella anonima `segnalazioni`, vedi `supabase/002_segnalazioni.sql`), esci subito.
+- QR code del libro: usare l'indirizzo `https://blunikoblu.github.io/iquattroguardiani/?da=libro`. Parole segrete del libro: in `data.json → parole` vanno le impronte SHA-256 di `luminos:<parola>` (minuscole, senza accenti).

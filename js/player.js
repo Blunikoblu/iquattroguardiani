@@ -10,6 +10,7 @@ export function createCollider(R = 0.3) {
     for (const a of areas) if (x >= a.x0 + R && x <= a.x1 - R && z >= a.z0 + R && z <= a.z1 - R) { inside = true; break; }
     if (!inside) return true;
     for (const s of solids) {
+      if (s.off) continue; // ostacoli rimossi (radici ritirate, guado emerso…)
       if (s.r != null) { const dx = x - s.x, dz = z - s.z; if (dx * dx + dz * dz < (s.r + R) * (s.r + R)) return true; }
       else if (x > s.x - s.w / 2 - R && x < s.x + s.w / 2 + R && z > s.z - s.d / 2 - R && z < s.z + s.d / 2 + R) return true;
     }
@@ -26,10 +27,14 @@ export function createPlayer(canvas, collider, opts) {
   let yaw = opts.spawn.yaw, pitch = -0.05, enabled = false, stepAcc = 0, bob = 0;
   let auto = null;   // camminata automatica { x, z, then }
   let seated = null; // panchina su cui sei seduto
+  // salto e piattaforme: groundAt(x, z) dà l'altezza del terreno (null = vuoto, si cade)
+  let y = 0, vy = 0, grounded = true;
+  const groundAt = (x, z) => opts.groundAt ? opts.groundAt(x, z) : 0;
 
   const keys = {};
   const typing = () => { const a = document.activeElement; return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'); };
-  addEventListener('keydown', e => { if (!typing()) keys[e.code] = true; });
+  addEventListener('keydown', e => { if (typing()) return; keys[e.code] = true; if (e.code === 'Space' && enabled) { e.preventDefault(); jump(); } });
+  function jump() { if (!grounded || seated) return false; vy = 5.4; grounded = false; opts.onJump?.(); return true; }
   addEventListener('keyup', e => { keys[e.code] = false; });
   addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 
@@ -70,21 +75,25 @@ export function createPlayer(canvas, collider, opts) {
   const endJoy = () => { joyId = null; jv = { x: 0, y: 0 }; knob.style.transform = ''; };
   joy.addEventListener('pointerup', endJoy); joy.addEventListener('pointercancel', endJoy);
 
+  // un gradino più alto di 45 cm si supera solo saltando
+  const tooHigh = (x, z) => { const g = groundAt(x, z); return g != null && g > y + 0.45; };
   function tryMove(sx, sz) {
     let moved = false;
-    if (!collider.blocked(pos.x + sx, pos.z)) { pos.x += sx; moved = true; }
-    if (!collider.blocked(pos.x, pos.z + sz)) { pos.z += sz; moved = true; }
+    if (!collider.blocked(pos.x + sx, pos.z) && !tooHigh(pos.x + sx, pos.z)) { pos.x += sx; moved = true; }
+    if (!collider.blocked(pos.x, pos.z + sz) && !tooHigh(pos.x, pos.z + sz)) { pos.z += sz; moved = true; }
     return moved;
   }
 
   return {
     pos, bob: 0,
+    get y() { return y; }, get grounded() { return grounded; },
+    jump,
     get yaw() { return yaw; }, get pitch() { return pitch; },
     get seated() { return seated; },
     set enabled(v) { enabled = v; if (!v) { for (const k in keys) keys[k] = false; endJoy(); lookId = null; } },
     get enabled() { return enabled; },
     get autoWalking() { return !!auto; },
-    teleport(x, z, y) { pos.x = x; pos.z = z; if (y != null) yaw = y; auto = null; seated = null; },
+    teleport(x, z, ry) { pos.x = x; pos.z = z; if (ry != null) yaw = ry; auto = null; seated = null; y = Math.max(0, groundAt(x, z) ?? 0); vy = 0; grounded = true; },
     standUp() { if (seated) { pos.x = seated.sx; pos.z = seated.sz; seated = null; } },
     look(y, p) { yaw = y; pitch = p; },
     lookAt(x, z) { yaw = Math.atan2(-(x - pos.x), -(z - pos.z)); pitch = -0.05; },
@@ -118,9 +127,14 @@ export function createPlayer(canvas, collider, opts) {
           else auto.stuck = 0;
         }
       }
+      // gravità: si cade dove non c'è terreno, si atterra sulle piattaforme
+      const g = groundAt(pos.x, pos.z), floor = g == null ? -Infinity : g;
+      if (vy > 0 || y > floor + 0.001) { vy -= 15 * dt; y += vy * dt; grounded = false; if (y <= floor) { y = floor; vy = 0; grounded = true; opts.onLand?.(); } }
+      else { y = floor; grounded = true; }
+      if (y < -7) { y = 0; vy = 0; grounded = true; opts.onFall?.(); }
       const moved = Math.hypot(pos.x - ox, pos.z - oz);
       let speed = 0;
-      if (moved > 0) { speed = moved / dt; bob += moved * 7; stepAcc += moved; if (stepAcc > 0.7) { stepAcc = 0; opts.onStep?.(); } }
+      if (moved > 0) { speed = moved / dt; bob += moved * 7; stepAcc += moved; if (stepAcc > 0.7 && grounded) { stepAcc = 0; opts.onStep?.(); } }
       this.bob = Math.sin(bob) * 0.018;
       return speed;
     },

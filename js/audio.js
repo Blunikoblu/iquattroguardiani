@@ -104,6 +104,9 @@ export const audio = {
   music(region, night = 0) { musicTick(region, night); },
   get musicOn() { return musicOn; },
   toggleMusic() { musicOn = !musicOn; try { localStorage.setItem('lu_musica', musicOn ? 'on' : 'off'); } catch (e) {} return musicOn; },
+  tone(f) { tone(f, 0.5, 'sine', 0.06); },
+  // il suono di ogni pietra
+  power(g) { const n = { marco: [294, 440, 587], sophia: [784, 1047, 1319], giulia: [196, 262, 330], luca: [392, 494, 659] }[g] || [440]; n.forEach((f, i) => setTimeout(() => tone(f, 0.5, g === 'giulia' ? 'triangle' : 'sine', 0.05, g === 'marco' ? 1.12 : 1), i * 90)); },
   light() { [392, 523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.6, 'sine', 0.05), i * 110)); },
   sparkle() { [1047, 1319, 1568, 2093].forEach((f, i) => setTimeout(() => tone(f, 0.12, 'sine', 0.05), i * 70)); },
   context() { return ensure() ? ctx : null; },

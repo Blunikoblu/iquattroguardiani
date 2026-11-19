@@ -138,7 +138,10 @@ const BUILDERS = {
   luca(c, r) { kid(c, r, { s: 0.86, top: 0x56704a, pants: 0x4a5a78, hair: 0x7a4a26, brow: 0x5a3418, style: 'curls', hood: true, strings: true, pack: 0x5a4636, pack2: 0x3e3026 }); },
   tonino(c, r) { adult(r, { cloth: 0x46586a, pants: 0x34343c, hair: 0xd8d4cc, beard: true, cap: 0x23365a }); },
   raccoglitrice(c, r) { adult(r, { cloth: 0xece6d8, apron: 0xc8bfa8, hair: 0x6a4a30, scarf: 0x8aa6c8, robe: true, basket: true }); },
-  anziana(c, r) { adult(r, { cloth: 0xe0d8c8, apron: 0xb8ad94, hair: 0xe8e4dc, long: true, bun: true, robe: true, basket: true }); },
+  pescatore(c, r) { adult(r, { cloth: 0xc86a3a, pants: 0x2f3e56, hair: 0x4a3222, cap: 0x2f5a7a, skin: 0xc99070 }); },
+  fornaia(c, r) { adult(r, { cloth: 0xf2ede2, apron: 0xe8dcc4, hair: 0x5a3a26, bun: true, pants: 0x6a4a3a }); },
+  bambina(c, r) { kid(c, r, { s: 0.82, top: 0xe87a9a, pants: 0x6a8ac8, shorts: true, short: true, hair: 0xb07a3a, brow: 0x7a4a22, style: 'tail', pack: 0xf0c050, pack2: 0xd8a830 }); r.stone.visible = false; },
+    anziana(c, r) { adult(r, { cloth: 0xe0d8c8, apron: 0xb8ad94, hair: 0xe8e4dc, long: true, bun: true, robe: true, basket: true }); },
 };
 
 function makeSprite(canvas, h) {

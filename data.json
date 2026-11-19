@@ -3,9 +3,17 @@
   "periodo": "in arrivo",
   "modulo": null,
   "copertina": "img/copertina.jpg",
-  "aperture": { "selva": null, "monte": null, "risacca": null, "solaria": null },
-  "instagram": null,
-  "facebook": null,
-  "tiktok": null,
-  "threads": null
+  "aperture": {
+    "selva": "2026-11-19",
+    "monte": "2026-11-19",
+    "risacca": "2026-11-19",
+    "solaria": "2026-11-19"
+  },
+  "instagram": "https://www.instagram.com/iquattroguardiani/",
+  "facebook": "https://www.facebook.com/profile.php?id=61596708420863",
+  "tiktok": "https://www.tiktok.com/@iquattroguardiani",
+  "threads": "https://www.threads.com/@iquattroguardiani",
+  "acquisto": null,
+  "estratto": null,
+  "parole": []
 }

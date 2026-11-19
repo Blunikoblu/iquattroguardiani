@@ -172,3 +172,48 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cine-t{font-family:Georgia,'Times New Roman',serif;font-size:clamp(34px,6vw,64px);color:#fff;letter-spacing:.04em;text-shadow:0 2px 18px rgba(0,0,0,.45)}
 .cine-s{max-width:640px;text-align:center;margin-top:8px;font-family:Georgia,serif;font-style:italic;font-size:clamp(15px,2vw,19px);line-height:1.45;color:#fdf6e6;text-shadow:0 1px 10px rgba(0,0,0,.55)}
 .cine-k{margin-top:18px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.7)}
+
+/* ---------- la pietra (potere) e il salto ---------- */
+#powerBtn{--c:#3f8cff;position:fixed;right:84px;bottom:18px;width:58px;height:58px;border-radius:50%;border:2px solid var(--c);background:radial-gradient(circle at 40% 35%,#fff 0,var(--c) 38%,rgba(16,14,36,.85) 75%);color:#fff;font-size:24px;display:grid;place-items:center;z-index:3;box-shadow:0 0 18px var(--c);cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+#powerBtn:active{transform:scale(.92)}
+#jumpBtn{position:fixed;left:160px;bottom:34px;width:58px;height:58px;border-radius:50%;border:1px solid #363158;background:rgba(16,14,36,.72);color:#fff;font-size:26px;z-index:3;touch-action:manipulation}
+@media (pointer:coarse){#powerBtn{right:auto;left:50%;transform:translateX(calc(-50% + 70px));bottom:96px;width:62px;height:62px}#powerBtn:active{transform:translateX(calc(-50% + 70px)) scale(.92)}#jumpBtn{left:auto;right:84px;bottom:22px}}
+
+/* ---------- primi passi ---------- */
+#tut{position:fixed;left:12px;bottom:16px;width:min(290px,calc(100vw - 24px));background:rgba(26,24,50,.92);border:1px solid #363158;border-left:3px solid #5dcaa5;border-radius:10px;padding:10px 34px 10px 12px;color:#ecebe6;z-index:3;font-size:14px;line-height:1.35;display:flex;flex-direction:column;gap:3px;animation:pop .2s ease-out}
+#tut small{font:700 10px/1 ui-monospace,monospace;letter-spacing:.08em;color:#5dcaa5}
+#tut b{font-size:15px}
+#tut .x{position:absolute;right:6px;top:6px;background:none;border:0;color:#a8a5c0;font-size:15px;cursor:pointer;padding:4px}
+#tut .dots{display:flex;gap:5px;margin-top:4px}#tut .dots i{width:8px;height:8px;border-radius:50%;background:#3a3660}#tut .dots i.ok{background:#5dcaa5}
+
+/* ---------- inviti, conti alla rovescia, attività ---------- */
+#invito{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:6;background:rgba(26,24,50,.96);border:1px solid #f5c56b;border-radius:12px;padding:12px 14px;color:#ecebe6;width:min(380px,calc(100vw - 24px));box-shadow:0 10px 30px rgba(0,0,0,.4);animation:pop .2s ease-out}
+#invito p{margin:0 0 10px}#invito div{display:flex;gap:10px;align-items:center}
+#bigcount{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:7;font:800 clamp(64px,16vw,150px)/1 Georgia,serif;color:#fff;text-shadow:0 4px 30px rgba(245,197,107,.8);opacity:0;transform:scale(.7);transition:opacity .25s,transform .25s}
+#bigcount.on{opacity:1;transform:scale(1)}
+#attChip{position:fixed;left:50%;top:58px;transform:translateX(-50%);z-index:4;background:rgba(16,14,36,.82);border:1px solid #f5c56b;color:#f5c56b;border-radius:999px;padding:7px 14px;font:600 13px/1.2 ui-sans-serif,system-ui;white-space:nowrap;max-width:calc(100vw - 20px);overflow:hidden;text-overflow:ellipsis}
+.podio{list-style:none;padding:0;margin:14px 0}.podio li{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.04);margin-bottom:6px}.podio li b{flex:1}.podio li.me{outline:1px solid #f5c56b}
+.who .acts button.warn{color:#f0a0a0;border-color:#6a3a48}
+#uscita{position:fixed;inset:0;z-index:50;background:#14122b;display:grid;place-items:center;text-align:center;color:#ecebe6;padding:24px}
+.parola form{display:flex;gap:8px}.parola input{flex:1;min-width:0;padding:10px 12px;border-radius:8px;border:1px solid #363158;background:#1a1832;color:#fff;font-size:16px}
+
+/* ---------- il taccuino come diario di viaggio ---------- */
+.jtabs{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0 12px}
+.jtabs button{border:1px solid #363158;background:rgba(255,255,255,.03);color:#c9c6bd;border-radius:999px;padding:6px 11px;font-size:13px;cursor:pointer}
+.jtabs button[aria-selected=true]{background:#f5c56b;color:#12102a;border-color:#f5c56b;font-weight:700}
+.jsum{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
+.jsum div{background:rgba(255,255,255,.04);border-radius:10px;padding:8px 4px;text-align:center}.jsum b{display:block;font:700 19px/1.1 Georgia,serif;color:#f5c56b}.jsum span{font-size:11px;color:#a8a5c0}
+.jnext{background:linear-gradient(135deg,rgba(245,197,107,.14),rgba(93,202,165,.08));border:1px dashed #f5c56b;border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.jnext small{font:700 10px/1 ui-monospace,monospace;letter-spacing:.08em;color:#f5c56b}.jnext p{margin:6px 0 0;font-style:italic}
+.jmap{width:100%;height:auto;border-radius:10px;display:block;margin-bottom:8px}
+.jlist{list-style:none;padding:0;margin:6px 0 10px}
+.jitem{display:flex;gap:10px;align-items:flex-start;padding:8px;border-radius:10px;margin-bottom:6px;background:rgba(255,255,255,.03)}
+.jitem.ok{background:rgba(245,197,107,.07)}
+.jitem div{display:flex;flex-direction:column;gap:2px;min-width:0}.jitem span{color:#c9c6bd;font-size:14px}.jitem small{color:#8a87a0;font-size:12px}
+.jico{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:21px;background:#2a2650}.jico.off{background:#22203a;color:#5a5778;font:700 18px Georgia}
+canvas.jico.rune{width:40px;height:40px}
+.jbadges{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.jbadge{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;padding:10px 6px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid #2e2b50;opacity:.6}
+.jbadge.ok{opacity:1;border-color:#f5c56b;background:rgba(245,197,107,.08)}.jbadge span{font-size:28px}.jbadge small{color:#a8a5c0;font-size:11px}
+@media (max-width:520px){.jsum{grid-template-columns:repeat(3,1fr)}}
+@media (pointer:coarse){#tut{bottom:auto;top:100px}}

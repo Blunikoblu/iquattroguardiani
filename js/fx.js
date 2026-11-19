@@ -29,9 +29,10 @@ function waterNormals(size = 256) {
   const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
 }
 
-export function createFX(renderer, scene, camera, { isTouch }) {
+export function createFX(renderer, scene, camera, opts) {
+  const { isTouch } = opts;
   const params = new URLSearchParams(location.search);
-  let quality = params.get('q') || (isTouch ? 'media' : 'alta');
+  let quality = params.get('q') || opts.quality || (isTouch ? 'media' : 'alta');
   // colori come nelle illustrazioni: nessuna correzione di tono; brilla solo ciò che emette luce
   // (le superfici illuminate arrivano al massimo a ~2.8, le luci vere stanno sopra 3).
   renderer.toneMapping = THREE.NoToneMapping;
@@ -122,6 +123,6 @@ export function createFX(renderer, scene, camera, { isTouch }) {
     // personaggi aggiunti dopo: proiettano ombra anche loro
     cast(obj) { if (!renderer.shadowMap.enabled) return; obj.traverse(o => { if (o.isMesh && !o.material.transparent && (o.material.isMeshStandardMaterial || o.material.isMeshLambertMaterial)) o.castShadow = true; }); },
     // per le riprese dei video
-    setQuality(q) { quality = q; useComposer = q !== 'bassa'; setShadows(q === 'alta'); },
+    setQuality(q) { quality = q; useComposer = q !== 'bassa'; setShadows(q === 'alta'); if (water) { water.visible = q === 'alta'; water.parent.children.forEach(c => { if (c.userData.replaced) c.visible = q !== 'alta'; }); } },
   };
 }
