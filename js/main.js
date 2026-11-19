@@ -1,20 +1,20 @@
 // Luminos · il mondo del libro. Punto di ingresso: collega mondo, personaggi, rete e interfaccia.
 import * as THREE from 'three';
-import { createFX } from './fx.js?v=202611191625';
-import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611191625';
-import { h } from './util.js?v=202611191625';
-import { audio } from './audio.js?v=202611191625';
-import { Avatar, previewRenderer } from './avatars.js?v=202611191625';
-import { buildWorld, zoneOf, regionOf } from './world.js?v=202611191625';
-import { createDiario } from './diario.js?v=202611191625';
-import { createPowers } from './powers.js?v=202611191625';
-import { createAttivita } from './attivita.js?v=202611191625';
-import { createLuoghi } from './luoghi.js?v=202611191625';
-import { RUNE_CACCIA } from './rune.js?v=202611191625';
-import { testo } from './testi.js?v=202611191625';
-import { createCollider, createPlayer } from './player.js?v=202611191625';
-import { createNet } from './net.js?v=202611191625';
-import { createUI } from './ui.js?v=202611191625';
+import { createFX } from './fx.js?v=202611191652';
+import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611191652';
+import { h } from './util.js?v=202611191652';
+import { audio } from './audio.js?v=202611191652';
+import { Avatar, previewRenderer } from './avatars.js?v=202611191652';
+import { buildWorld, zoneOf, regionOf } from './world.js?v=202611191652';
+import { createDiario } from './diario.js?v=202611191652';
+import { createPowers } from './powers.js?v=202611191652';
+import { createAttivita } from './attivita.js?v=202611191652';
+import { createLuoghi } from './luoghi.js?v=202611191652';
+import { RUNE_CACCIA } from './rune.js?v=202611191652';
+import { testo } from './testi.js?v=202611191652';
+import { createCollider, createPlayer } from './player.js?v=202611191652';
+import { createNet } from './net.js?v=202611191652';
+import { createUI } from './ui.js?v=202611191652';
 
 const isTouch = matchMedia('(pointer: coarse)').matches;
 if (new URLSearchParams(location.search).has('rec')) document.documentElement.classList.add('rec'); // riprese: senza interfaccia
@@ -571,6 +571,7 @@ requestAnimationFrame(frame);
     $('introSignup').textContent = 'Avvisami quando esce il cartaceo';
     $('introCount').append(' ', h('a', { href: data.acquisto, target: '_blank', rel: 'noopener', style: 'color:#f5c56b' }, 'Vai all\'ebook'));
   }
+  if (data.estratto) $('introSignup').parentElement.before(h('p', { style: 'margin:6px 0' }, h('a', { href: data.estratto, target: '_blank', rel: 'noopener', style: 'color:#f5c56b' }, 'Leggi gratis il primo capitolo')));
 }
 
 // ---------- Volo d'apertura su Marechiaro (si salta toccando lo schermo) ----------
