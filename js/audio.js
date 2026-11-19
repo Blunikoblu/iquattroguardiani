@@ -88,10 +88,11 @@ export const audio = {
     ensureWater();
     const a = state.area, now = ctx.currentTime;
     // mare e fiume: rumore filtrato che "respira" come le onde
-    const onda = a === 'molo' || a === 'ponte' ? 0.035 + 0.03 * Math.max(0, Math.sin(state.t * 0.9)) : 0;
+    // il mare respira; nella Selva il vento sussurra senza sosta; alla Risacca l'acqua corre
+    const onda = a === 'molo' || a === 'ponte' || a === 'risacca' ? 0.035 + 0.03 * Math.max(0, Math.sin(state.t * 0.9)) : a === 'selva' ? 0.045 + 0.035 * Math.max(0, Math.sin(state.t * 0.6) * Math.sin(state.t * 1.7)) : 0;
     const fiume = a === 'fiume' ? 0.07 * state.acqua : 0;
     water.gain.setTargetAtTime(Math.max(onda, fiume), now, 0.5);
-    hum.gain.setTargetAtTime(a === 'caverne' ? 0.08 : a === 'foresta' ? 0.06 : 0.025, now, 0.6);
+    hum.gain.setTargetAtTime(a === 'caverne' || a === 'monte' ? 0.08 : a === 'foresta' || a === 'selva' ? 0.06 : 0.025, now, 0.6);
     ambT -= dt;
     if (ambT > 0) return;
     if (a === 'foresta') { ambT = 1.2 + Math.random() * 3; const f = 2400 + Math.random() * 1400; tone(f, 0.09, 'sine', 0.016, 1.3); setTimeout(() => tone(f * 1.25, 0.08, 'sine', 0.013, 0.9), 130); }

@@ -1,20 +1,20 @@
 // Luminos · il mondo del libro. Punto di ingresso: collega mondo, personaggi, rete e interfaccia.
 import * as THREE from 'three';
-import { createFX } from './fx.js?v=202611191232';
-import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611191232';
-import { h } from './util.js?v=202611191232';
-import { audio } from './audio.js?v=202611191232';
-import { Avatar, previewRenderer } from './avatars.js?v=202611191232';
-import { buildWorld, zoneOf, regionOf } from './world.js?v=202611191232';
-import { createDiario } from './diario.js?v=202611191232';
-import { createPowers } from './powers.js?v=202611191232';
-import { createAttivita } from './attivita.js?v=202611191232';
-import { createLuoghi } from './luoghi.js?v=202611191232';
-import { RUNE_CACCIA } from './rune.js?v=202611191232';
-import { testo } from './testi.js?v=202611191232';
-import { createCollider, createPlayer } from './player.js?v=202611191232';
-import { createNet } from './net.js?v=202611191232';
-import { createUI } from './ui.js?v=202611191232';
+import { createFX } from './fx.js?v=202611191240';
+import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611191240';
+import { h } from './util.js?v=202611191240';
+import { audio } from './audio.js?v=202611191240';
+import { Avatar, previewRenderer } from './avatars.js?v=202611191240';
+import { buildWorld, zoneOf, regionOf } from './world.js?v=202611191240';
+import { createDiario } from './diario.js?v=202611191240';
+import { createPowers } from './powers.js?v=202611191240';
+import { createAttivita } from './attivita.js?v=202611191240';
+import { createLuoghi } from './luoghi.js?v=202611191240';
+import { RUNE_CACCIA } from './rune.js?v=202611191240';
+import { testo } from './testi.js?v=202611191240';
+import { createCollider, createPlayer } from './player.js?v=202611191240';
+import { createNet } from './net.js?v=202611191240';
+import { createUI } from './ui.js?v=202611191240';
 
 const isTouch = matchMedia('(pointer: coarse)').matches;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -549,7 +549,7 @@ function tick(dt, time) {
   const F = luoghi.fogFor(zona) || world.fogFor(zona, p.z), a = Math.min(1, dt * 2.5);
   scene.fog.color.lerp(fogCol.setHex(F.c), a); scene.fog.near += (F.near - scene.fog.near) * a; scene.fog.far += (F.far - scene.fog.far) * a; scene.background.copy(scene.fog.color);
   ambT -= dt;
-  if (ambT <= 0) { ambT = 0.25; const amb = zona === 'marechiaro' || zona === 'scogli' || (zona === 'grotta' && p.z > 15.5) ? 'molo' : zona === 'grotta' || zona === 'lago' || zona === 'sala' ? 'caverne' : zona === 'selva' ? 'foresta' : 'piazza'; audio.ambient(0.25, { area: amb, acqua: 0, t: time }); if (entered || cinema) audio.music(zona === 'marechiaro' || zona === 'scogli' || (zona === 'grotta' && p.z > 15.5) ? 'marechiaro' : zona === 'grotta' ? (p.z > 4.5 ? null : 'grotta') : zona === 'lago' || zona === 'sala' ? 'grotta' : 'luminos', world.night); }
+  if (ambT <= 0) { ambT = 0.25; const amb = zona === 'marechiaro' || zona === 'scogli' || (zona === 'grotta' && p.z > 15.5) ? 'molo' : zona === 'grotta' || zona === 'lago' || zona === 'sala' ? 'caverne' : zona === 'selva' || zona === 'monte' || zona === 'risacca' ? zona : 'piazza'; audio.ambient(0.25, { area: amb, acqua: 0, t: time }); if (entered || cinema) audio.music(zona === 'marechiaro' || zona === 'scogli' || (zona === 'grotta' && p.z > 15.5) ? 'marechiaro' : zona === 'grotta' ? (p.z > 4.5 ? null : 'grotta') : zona === 'lago' || zona === 'sala' ? 'grotta' : 'luminos', world.night); }
 
   if (cinema) cinema(dt); else updateCamera(dt, zona);
   if (!manual && dt > 0.034) { if (++slowFrames > 90 && pixelRatio > 0.75) { pixelRatio = Math.max(0.75, pixelRatio - 0.25); renderer.setPixelRatio(pixelRatio); renderer.setSize(innerWidth, innerHeight, false); fx.resize(); slowFrames = 0; } }

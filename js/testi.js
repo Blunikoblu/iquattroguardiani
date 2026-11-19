@@ -17,7 +17,7 @@ export const TESTI = {
   // poteri
   'potere-marco': { tipo: 'gioco', ok: true, testo: 'Marco usa il Flusso: l\'acqua vicina si muove e certi meccanismi d\'acqua si attivano.' },
   'potere-sophia': { tipo: 'gioco', ok: true, testo: 'Sophia usa la Luce: illumina i simboli nascosti e risveglia i cristalli.' },
-  'potere-giulia': { tipo: 'gioco', ok: true, testo: 'Giulia usa la Memoria: legge le rune e ricostruisce i simboli.' },
+  'potere-giulia': { tipo: 'gioco', ok: true, testo: 'Giulia usa la Memoria: legge le rune e, leggendole, vede momenti del passato.' },
   'potere-luca': { tipo: 'gioco', ok: true, testo: 'Luca usa la Natura: chiama gli animali vicini e parla con piante e alberi.' },
   'potere-nulla': { tipo: 'gioco', ok: true, testo: 'La pietra brilla, ma qui non succede niente. Prova vicino all\'acqua, alle rune, ai cristalli o agli animali.' },
   // reazioni dei personaggi (storia) con la riserva neutra
@@ -27,8 +27,8 @@ export const TESTI = {
   'farfalle-g': { tipo: 'gioco', ok: true, testo: '🦋 Le farfalle ti girano intorno e tornano tra i fiori.' },
   'lupo-luca': { tipo: 'storia', ok: true, testo: '🐺 Il lupo annusa la mano di Luca, poi si siede accanto a lui. Le sue foglie frusciano nel vento.' },
   'lupo-g': { tipo: 'gioco', ok: true, testo: '🐺 Il lupo ti guarda a lungo, poi abbassa la testa e torna a sdraiarsi tra le foglie.' },
-  'monte-giulia': { tipo: 'storia', ok: false, testo: '🪨 Giulia passa le dita sulla pietra: il segno spezzato si ricompone, come lei lo ricordava.' },
-  'monte-g': { tipo: 'gioco', ok: true, testo: '🪨 Il segno spezzato si ricompone e si accende d\'oro.' },
+  'monte-giulia': { tipo: 'storia', ok: true, testo: '🪨 Giulia legge la runa spezzata. Per un attimo vede chi l\'aveva incisa, tanto tempo fa, e la runa torna intera.' },
+  'monte-g': { tipo: 'gioco', ok: true, testo: '🪨 La runa spezzata torna intera e si accende d\'oro.' },
   'tunnel-giulia': { tipo: 'storia', ok: true, testo: '📓 Giulia copia le rune sul taccuino e si accorge di una cosa: vanno lette da destra a sinistra.' },
   'tunnel-g': { tipo: 'gioco', ok: true, testo: '📓 Indizio: le rune del tunnel si leggono da destra a sinistra. Le ultime quattro sono come le pietre intorno al lago.' },
   'conchiglia-1': { tipo: 'storia', ok: true, testo: '🐚 È leggera e tiepida. Se la avvicini all\'orecchio, non si sente il mare: si sente il silenzio della grotta.' },
@@ -36,7 +36,7 @@ export const TESTI = {
   // i quattro luoghi (senza trama)
   'selva-1': { tipo: 'storia', ok: true, testo: 'Nella Selva di Maestrale il vento non smette mai. Gli alberi più vecchi si piegano tutti dalla stessa parte.' },
   'monte-1': { tipo: 'storia', ok: true, testo: 'Le rocce del Monte Zavorra sono scure, ma attraversate da venature dorate. Se le tocchi, sembrano tiepide.' },
-  'risacca-1': { tipo: 'storia', ok: false, testo: 'L\'acqua della Risacca brilla anche di notte, e non scorre sempre dalla stessa parte.' },
+  'risacca-1': { tipo: 'storia', ok: true, testo: 'L\'acqua della Risacca brilla e scorre in tutte le direzioni: di lato, all\'indietro, perfino verso il cielo.' },
   'solaria-1': { tipo: 'storia', ok: true, testo: 'Solaria ha torri dorate e cupole di sale. Di giorno è così luminosa che le ombre sembrano disegnate.' },
 };
 // testo da mostrare: quello di storia se approvato, altrimenti la riserva di gioco (o niente)
