@@ -7,10 +7,10 @@
 // Si vede solo la regione in cui ti trovi (più leggero sui telefoni).
 // I pannelli sono costruiti con h() (DOM + textContent): niente innerHTML.
 import * as THREE from 'three';
-import { AVATARS } from './config.js?v=202611191213';
-import { h, wrapText } from './util.js?v=202611191213';
-import { Avatar } from './avatars.js?v=202611191213';
-import { drawRune } from './secrets.js?v=202611191213';
+import { AVATARS } from './config.js?v=202611191217';
+import { h, wrapText } from './util.js?v=202611191217';
+import { Avatar } from './avatars.js?v=202611191217';
+import { drawRune } from './secrets.js?v=202611191217';
 
 const GOLD = 0xf5c56b;
 let seed = 11;

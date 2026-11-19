@@ -4,7 +4,7 @@
 // Un potere si usa con il pulsante della pietra (tasto F). Agisce sui "punti" vicini registrati dai luoghi
 // e dalle attività (spot). Gli altri visitatori vedono l'effetto; i punti condivisi si attivano per tutti.
 import * as THREE from 'three';
-import { testo } from './testi.js?v=202611191213';
+import { testo } from './testi.js?v=202611191217';
 
 const COL = { marco: 0x3f8cff, sophia: 0xfff2c8, giulia: 0xd89a52, luca: 0x5fd06e };
 

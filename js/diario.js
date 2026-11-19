@@ -2,8 +2,8 @@
 // Tutto resta solo in questo browser (localStorage): nessun account, nessun invio in rete.
 // Mantiene la chiave storica 'lu_scoperte' per chi aveva già trovato dei segreti.
 import * as THREE from 'three';
-import { h } from './util.js?v=202611191213';
-import { SECRETS, drawRune } from './secrets.js?v=202611191213';
+import { h } from './util.js?v=202611191217';
+import { SECRETS, drawRune } from './secrets.js?v=202611191217';
 
 const LUOGO = { marechiaro: 'Marechiaro', grotta: 'Grotta dei Sussurri', luminos: 'Luminos', cammini: 'I quattro cammini' };
 

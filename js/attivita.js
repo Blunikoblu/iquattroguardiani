@@ -4,12 +4,12 @@
 // Sincronizzazione: solo messaggi brevi e validati (net.act). Ciò che dipende dall'ora (la marea) è calcolato
 // dall'orologio, uguale per tutti senza server. Tutto funziona anche da soli.
 import * as THREE from 'three';
-import { h } from './util.js?v=202611191213';
-import { tideState, zoneOf } from './world.js?v=202611191213';
-import { RUNE_CACCIA } from './rune.js?v=202611191213';
-import { drawRune } from './secrets.js?v=202611191213';
-import { testo } from './testi.js?v=202611191213';
-import { AVATARS } from './config.js?v=202611191213';
+import { h } from './util.js?v=202611191217';
+import { tideState, zoneOf } from './world.js?v=202611191217';
+import { RUNE_CACCIA } from './rune.js?v=202611191217';
+import { drawRune } from './secrets.js?v=202611191217';
+import { testo } from './testi.js?v=202611191217';
+import { AVATARS } from './config.js?v=202611191217';
 
 const NOMEG = Object.fromEntries(AVATARS.map(a => [a.id, a.nome]));
 
@@ -160,14 +160,14 @@ export function createAttivita({ world, scene, ui, audio, diario, powers, net, m
       const z = zoneOf(me().x, me().z);
       if (z === 'marechiaro' || z === 'scogli') invito(`🏁 ${o.meta.nick} propone una gara al molo! Partenza tra ${d.in} secondi dalla fontana.`, () => { race.joined = true; hooks.walkTo(FX + 1.2, FZ - 0.6); }, 'No, grazie', d.in);
     }
-    if (d.c === 'fine' && race && race.id === d.r) { race.results.set(o.meta.nick, d.t); o.av.play('party'); if (race.mine != null) showResults(); }
+    if (d.c === 'fine' && race && race.id === d.r) { race.results.set(id, { n: o.meta.nick, t: d.t }); o.av.play('party'); if (race.mine != null) showResults(); }
   }
   function showResults() {
-    const list = [...race.results.entries()].sort((a, b) => a[1] - b[1]);
+    const list = [...race.results.entries()].sort((a, b) => a[1].t - b[1].t);
     const first = list[0];
-    if (list.length >= 2 && first[0] === me().nick) diario.badge('vincitore');
+    if (list.length >= 2 && first[0] === 'me') diario.badge('vincitore');
     if (list.length >= 2) diario.badge('insieme');
-    ui.openPanel([h('h2', {}, 'La gara al molo'), h('ol', { class: 'podio' }, ...list.map(([n, t], i) => h('li', { class: n === me().nick ? 'me' : '' }, h('span', {}, ['🥇', '🥈', '🥉'][i] || `${i + 1}.`), h('b', {}, n), h('span', {}, `${t.toFixed(1).replace('.', ',')} s`)))),
+    ui.openPanel([h('h2', {}, 'La gara al molo'), h('ol', { class: 'podio' }, ...list.map(([k, r], i) => h('li', { class: k === 'me' ? 'me' : '' }, h('span', {}, ['🥇', '🥈', '🥉'][i] || `${i + 1}.`), h('b', {}, k === 'me' ? `${r.n} (tu)` : r.n), h('span', {}, `${r.t.toFixed(1).replace('.', ',')} s`)))),
       h('p', { class: 'quote' }, '«Trentuno a trenta. Per me.»'),
       h('p', { class: 'muted' }, 'Gli altri arrivi compaiono qui man mano.')], { label: 'Risultati della gara' });
   }
@@ -198,7 +198,7 @@ export function createAttivita({ world, scene, ui, audio, diario, powers, net, m
           h('p', { class: 'quote' }, '«Trentuno a trenta. Per me.»'),
           h('p', { class: 'muted' }, 'È una gara che va avanti da quando Sophia e Marco avevano sei anni: chi arriva prima al molo, alla fontana, in cima alla scogliera. Il punteggio lo tiene Sophia, e nessuno ha mai osato controllarlo.')], { label: 'La gara al molo' });
       } else {
-        race.results.set(me().nick, s); net.act('gara', { c: 'fine', r: race.id, t: +s.toFixed(2) });
+        race.results.set('me', { n: me().nick, t: s }); net.act('gara', { c: 'fine', r: race.id, t: +s.toFixed(2) });
         setTimeout(() => { showResults(); race.done = true; }, 4000);
       }
     } else if (race.running && (now() - race.t0 > 90 || zoneOf(p.x, p.z) !== 'marechiaro')) { race.running = false; race.done = true; }
@@ -221,9 +221,11 @@ export function createAttivita({ world, scene, ui, audio, diario, powers, net, m
       if (z === 'spiaggia' && tide.mine.size) { hooks.toast('🌅 Tutti i cristalli insieme: la spiaggia si accende come a mezzogiorno.'); diario.badge('marea'); if (tide.who.size >= 2) diario.badge('insieme'); }
     }
   }
+  // la marea corrente (stesso numero per tutti, dall'orologio): si prepara anche se arriva prima un messaggio
+  function ensureTide() { const n = Math.floor(Date.now() / 240000); if (n !== tide.n) tide = { n, got: new Set(), mine: new Set(), who: new Set(), done: false, beamT: 0, pos: tidePositions(n) }; }
   function tideTick(t, dt) {
-    const st = tideState(), n = Math.floor(Date.now() / 240000), active = st.t < 69;
-    if (n !== tide.n) { tide = { n, got: new Set(), mine: new Set(), who: new Set(), done: false, beamT: 0, pos: tidePositions(n) }; }
+    const st = tideState(), active = st.t < 69;
+    ensureTide();
     const z = zoneOf(me().x, me().z), onBeach = z === 'spiaggia';
     crys.forEach((m, i) => { const vis = active && !tide.got.has(i) && (st.t > (i * 0.7)); m.visible = vis; if (vis) { m.position.set(tide.pos[i][0], 0.45 + Math.sin(t * 2.2 + i) * 0.08, tide.pos[i][1]); m.rotation.y = t + i; } });
     if (active && onBeach) { const p = me(); for (let i = 0; i < NC; i++) if (crys[i].visible && Math.hypot(crys[i].position.x - p.x, crys[i].position.z - p.z) < 0.9) collectCrystal(i, true); }
@@ -418,13 +420,14 @@ export function createAttivita({ world, scene, ui, audio, diario, powers, net, m
   }
   function onAct(id, k, d, o) {
     if (k === 'gara') { if (!mute || d.c !== 'call') onRaceMsg(id, d, o); return; }
-    if (k === 'mc') { if (d.n === tide.n) collectCrystal(d.c, false, id); return; }
+    if (k === 'mc') { ensureTide(); if (d.n === tide.n) collectCrystal(d.c, false, id); return; }
     if (k === 'df') { chiamaDelfini(false); return; }
     if (k === 'st?') { setTimeout(shareState, 300 + Math.random() * 900); return; }
     if (k === 'st') {
       const pt = d.porta || {}, t = now();
       for (const key of ['m', 'l', 'g', 's']) if (pt[key] != null && !porta[key]) porta[key] = t - pt[key];
       if (pt.o != null && !porta.o) porta.o = t - pt.o;
+      ensureTide();
       if (d.mc && d.mc.n === tide.n && Array.isArray(d.mc.c)) d.mc.c.slice(0, NC).forEach(c => { if (Number.isInteger(c) && c >= 0 && c < NC) collectCrystal(c, false, id); });
     }
   }

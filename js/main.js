@@ -1,20 +1,20 @@
 // Luminos · il mondo del libro. Punto di ingresso: collega mondo, personaggi, rete e interfaccia.
 import * as THREE from 'three';
-import { createFX } from './fx.js?v=202611191213';
-import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611191213';
-import { h } from './util.js?v=202611191213';
-import { audio } from './audio.js?v=202611191213';
-import { Avatar, previewRenderer } from './avatars.js?v=202611191213';
-import { buildWorld, zoneOf, regionOf } from './world.js?v=202611191213';
-import { createDiario } from './diario.js?v=202611191213';
-import { createPowers } from './powers.js?v=202611191213';
-import { createAttivita } from './attivita.js?v=202611191213';
-import { createLuoghi } from './luoghi.js?v=202611191213';
-import { RUNE_CACCIA } from './rune.js?v=202611191213';
-import { testo } from './testi.js?v=202611191213';
-import { createCollider, createPlayer } from './player.js?v=202611191213';
-import { createNet } from './net.js?v=202611191213';
-import { createUI } from './ui.js?v=202611191213';
+import { createFX } from './fx.js?v=202611191217';
+import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611191217';
+import { h } from './util.js?v=202611191217';
+import { audio } from './audio.js?v=202611191217';
+import { Avatar, previewRenderer } from './avatars.js?v=202611191217';
+import { buildWorld, zoneOf, regionOf } from './world.js?v=202611191217';
+import { createDiario } from './diario.js?v=202611191217';
+import { createPowers } from './powers.js?v=202611191217';
+import { createAttivita } from './attivita.js?v=202611191217';
+import { createLuoghi } from './luoghi.js?v=202611191217';
+import { RUNE_CACCIA } from './rune.js?v=202611191217';
+import { testo } from './testi.js?v=202611191217';
+import { createCollider, createPlayer } from './player.js?v=202611191217';
+import { createNet } from './net.js?v=202611191217';
+import { createUI } from './ui.js?v=202611191217';
 
 const isTouch = matchMedia('(pointer: coarse)').matches;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
