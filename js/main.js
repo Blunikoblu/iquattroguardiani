@@ -1,20 +1,20 @@
 // Luminos · il mondo del libro. Punto di ingresso: collega mondo, personaggi, rete e interfaccia.
 import * as THREE from 'three';
-import { createFX } from './fx.js?v=202611191652';
-import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611191652';
-import { h } from './util.js?v=202611191652';
-import { audio } from './audio.js?v=202611191652';
-import { Avatar, previewRenderer } from './avatars.js?v=202611191652';
-import { buildWorld, zoneOf, regionOf } from './world.js?v=202611191652';
-import { createDiario } from './diario.js?v=202611191652';
-import { createPowers } from './powers.js?v=202611191652';
-import { createAttivita } from './attivita.js?v=202611191652';
-import { createLuoghi } from './luoghi.js?v=202611191652';
-import { RUNE_CACCIA } from './rune.js?v=202611191652';
-import { testo } from './testi.js?v=202611191652';
-import { createCollider, createPlayer } from './player.js?v=202611191652';
-import { createNet } from './net.js?v=202611191652';
-import { createUI } from './ui.js?v=202611191652';
+import { createFX } from './fx.js?v=202611192230';
+import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611192230';
+import { h } from './util.js?v=202611192230';
+import { audio } from './audio.js?v=202611192230';
+import { Avatar, previewRenderer } from './avatars.js?v=202611192230';
+import { buildWorld, zoneOf, regionOf } from './world.js?v=202611192230';
+import { createDiario } from './diario.js?v=202611192230';
+import { createPowers } from './powers.js?v=202611192230';
+import { createAttivita } from './attivita.js?v=202611192230';
+import { createLuoghi } from './luoghi.js?v=202611192230';
+import { RUNE_CACCIA } from './rune.js?v=202611192230';
+import { testo } from './testi.js?v=202611192230';
+import { createCollider, createPlayer } from './player.js?v=202611192230';
+import { createNet } from './net.js?v=202611192230';
+import { createUI } from './ui.js?v=202611192230';
 
 const isTouch = matchMedia('(pointer: coarse)').matches;
 if (new URLSearchParams(location.search).has('rec')) document.documentElement.classList.add('rec'); // riprese: senza interfaccia
@@ -27,9 +27,9 @@ const store = {
 const safeUrl = u => (typeof u === 'string' && /^https:\/\//.test(u)) ? u : null;
 
 // Dati pubblici (data di uscita, modulo, social): solo da data.json nel repository.
-const data = { uscita: null, periodo: null, modulo: null, copertina: null, aperture: {}, instagram: null, facebook: null, tiktok: null, threads: null, acquisto: null, estratto: null, parole: [] };
+const data = { uscita: null, periodo: null, modulo: null, copertina: null, aperture: {}, instagram: null, facebook: null, tiktok: null, threads: null, acquisto: null, estratto: null, kit: null, parole: [] };
 try { const r = await fetch('data.json', { cache: 'no-store' }); if (r.ok) Object.assign(data, await r.json()); } catch (e) {}
-for (const k of ['modulo', 'instagram', 'facebook', 'tiktok', 'threads', 'acquisto', 'estratto']) data[k] = safeUrl(data[k]);
+for (const k of ['modulo', 'instagram', 'facebook', 'tiktok', 'threads', 'acquisto', 'estratto', 'kit']) data[k] = safeUrl(data[k]);
 data.parole = Array.isArray(data.parole) ? data.parole.filter(x => typeof x === 'string' && /^[0-9a-f]{64}$/.test(x)) : [];
 if (data.copertina && !/^[a-z0-9/_.-]+\.(jpg|jpeg|png|webp)$/i.test(data.copertina)) data.copertina = null;
 
@@ -422,6 +422,7 @@ function libroPanel() {
   return [...world.bookPanel(),
     data.acquisto ? h('p', {}, h('a', { class: 'btn', href: data.acquisto, target: '_blank', rel: 'noopener' }, 'Compra l\'ebook su Amazon')) : null,
     data.estratto ? h('p', {}, h('a', { href: data.estratto, target: '_blank', rel: 'noopener', style: 'color:#f5c56b' }, 'Leggi un estratto gratuito')) : null,
+    data.kit ? h('p', {}, h('a', { href: data.kit, target: '_blank', rel: 'noopener', style: 'color:#f5c56b' }, 'Kit gratuito per insegnanti e bibliotecari')) : null,
     social.length ? h('p', { class: 'muted' }, 'Canali ufficiali (per adulti): ', ...social.flatMap(([n, u], i) => [i ? ' · ' : '', h('a', { href: u, target: '_blank', rel: 'noopener', style: 'color:#f5c56b' }, n)])) : null,
     Array.isArray(data.parole) && data.parole.length ? h('div', { class: 'parola' }, h('h3', {}, 'Hai il libro?'), h('p', { class: 'muted' }, 'Tra le pagine ci sono parole che aprono sorprese qui a Luminos. La parola non lascia il tuo dispositivo.'),
       h('form', { onsubmit: async e => { e.preventDefault(); const ok = await secrets.parola(inp.value, data.parole); inp.value = ''; if (ok) { secrets.badge('lettore'); ui.toast('📖 Parola giusta! Il taccuino ha un nuovo distintivo.'); } else ui.toast('Non è una delle parole nascoste. Riprova.'); } }, inp, h('button', { class: 'btn', type: 'submit' }, 'Prova'))) : null];

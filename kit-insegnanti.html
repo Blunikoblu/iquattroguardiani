@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kit per insegnanti · I quattro Guardiani e il regno perduto della Luce</title>
+<meta name="description" content="Kit gratuito per insegnanti e bibliotecari: presentazione del libro, temi, attività e domande per la classe sui capitoli 1–5 di «I quattro Guardiani e il regno perduto della Luce» di Nicola Gobbini (9–12 anni).">
+<style>
+@font-face{font-family:Cormorant;src:url(fonts/cormorant-garamond-latin-500-normal.ttf);font-weight:500}
+@font-face{font-family:Cormorant;src:url(fonts/cormorant-garamond-latin-700-normal.ttf);font-weight:700}
+@font-face{font-family:Cormorant;src:url(fonts/cormorant-garamond-latin-600-italic.ttf);font-style:italic;font-weight:600}
+@font-face{font-family:InterK;src:url(fonts/inter-latin-600-normal.ttf);font-weight:600}
+:root{--paper:#fbf7ee;--ink:#25222c;--muted:#6c6573;--blue:#2f4f9a;--gold:#b7862e;--line:#e6dcc7;--soft:#f3ecdc}
+*{box-sizing:border-box}
+html{background:#12102a}
+body{margin:0;color:var(--ink);font:16.5px/1.6 Georgia,'Times New Roman',serif}
+.wrap{max-width:820px;margin:0 auto;background:var(--paper);box-shadow:0 0 60px rgba(0,0,0,.35)}
+section{padding:46px clamp(22px,6vw,70px)}
+h1,h2,h3{font-family:Cormorant,Georgia,serif;font-weight:700;color:var(--blue);line-height:1.15}
+h2{font-size:34px;margin:0 0 6px}
+h3{font-size:24px;margin:26px 0 6px}
+.k{font:600 11.5px/1 InterK,system-ui,sans-serif;letter-spacing:.24em;color:var(--gold);text-transform:uppercase}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:22px}
+li{margin:0 0 6px}
+a{color:var(--blue)}
+.cover{background:radial-gradient(ellipse at top,#2c2a5c,#12102a 75%);color:#ecebe6;text-align:center;padding:54px 30px 46px}
+.cover img{width:200px;border-radius:6px;box-shadow:0 14px 40px rgba(0,0,0,.55)}
+.cover h1{color:#fbf5e6;font-size:46px;margin:18px 0 4px}
+.cover .sub{font-family:Cormorant,Georgia,serif;font-style:italic;font-weight:600;font-size:24px;color:#d8d3e6;margin:0}
+.cover .k{color:#f5c56b;margin-top:22px}
+.cover .who{margin-top:16px;color:#c9c4d8;font-size:15px}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 6px}
+.fact{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.fact b{display:block;font:600 11px/1.2 InterK,system-ui,sans-serif;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.fact span{font-size:15px}
+.fig{margin:18px 0}
+.fig img{width:100%;border-radius:10px;display:block}
+.fig figcaption{font-size:13px;color:var(--muted);margin-top:6px;font-style:italic}
+.chars{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.char{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fff9}
+.char h4{margin:0 0 4px;font-family:Cormorant,Georgia,serif;font-size:24px;color:var(--blue)}
+.char .stone{font:600 11px/1 InterK,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase}
+.blu{color:#2f6fd6}.ver{color:#2f8a3a}.mar{color:#8a5a2b}.bia{color:#9a8a5a}
+.theme{border-left:3px solid var(--gold);padding:2px 0 2px 14px;margin:14px 0}
+.theme b{font-family:Cormorant,Georgia,serif;font-size:21px;color:var(--blue)}
+.act{border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0;background:#fff9;break-inside:avoid}
+.act h4{margin:0 0 2px;font-family:Cormorant,Georgia,serif;font-size:23px;color:var(--blue)}
+.meta{font:600 11px/1.4 InterK,system-ui,sans-serif;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;margin-bottom:8px}
+.note{background:#fff4dc;border:1px solid #efd8a4;border-radius:10px;padding:12px 14px;font-size:15px}
+.q h4{font-family:Cormorant,Georgia,serif;font-size:21px;color:var(--blue);margin:16px 0 4px}
+.links li{margin-bottom:8px}
+.foot{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+@media (max-width:640px){.facts{grid-template-columns:1fr 1fr}.chars,.two{grid-template-columns:1fr}}
+.pb{break-before:page}
+@media print{
+  @page{size:A4;margin:14mm 14mm 16mm}
+  html{background:#fff}
+  .wrap{box-shadow:none;max-width:none}
+  section{padding:0 0 10px}
+  .cover{margin:-14mm -14mm 8mm;padding:12mm 20mm 10mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cover img{width:42mm}
+  .cover h1{font-size:38px;margin:10px 0 2px}
+  .cover .k{margin-top:12px}
+  body{font-size:13.5px;line-height:1.5}
+  h2{font-size:28px}
+  .fig img{width:auto;max-width:100%;max-height:118mm;margin:0 auto}
+  .fig figcaption{text-align:center}
+  .fig{margin:10px 0}
+  .chars,.char,.theme,.facts,.note{break-inside:avoid}
+  .act{padding:10px 14px;margin:9px 0}
+  .act h4{font-size:20px}
+  .fact,.act,.note,.char{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  a{text-decoration:none}
+  .noprint{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <img src="img/copertina.jpg" alt="Copertina de «I quattro Guardiani e il regno perduto della Luce»">
+  <div class="k">Kit gratuito per insegnanti e bibliotecari</div>
+  <h1>I quattro Guardiani</h1>
+  <p class="sub">e il regno perduto della Luce</p>
+  <p class="who">Nicola Gobbini · romanzo fantasy per ragazzi dai 9 ai 12 anni</p>
+</header>
+
+<section>
+  <div class="k">Il libro in breve</div>
+  <h2>Quattro amici, una grotta, un regno di luce</h2>
+  <p>A Marechiaro, un paese di pescatori, è agosto e il mare brilla così forte che bisogna guardarlo con gli occhi socchiusi. Marco, Sophia, Giulia e Luca sono amici da sempre. Un giorno prendono la barca a remi e vanno fino alla Grotta dei Sussurri, che si vede solo arrivando dal mare.</p>
+  <p>Dentro trovano rune che si accendono di azzurro, un lago di cristallo e quattro pietre, ognuna di un colore diverso. Le pietre li riconoscono. Oltre un arco di luce li aspetta Luminos, un regno dove il cielo sta al posto del mare, la spiaggia è fatta di sale luminoso e la luce sta svanendo.</p>
+  <p>È una storia di amicizia, di coraggio e di talenti che ognuno ha già dentro di sé, scritta con un linguaggio semplice e ricco di immagini del mare.</p>
+  <div class="facts">
+    <div class="fact"><b>Età</b><span>9–12 anni</span></div>
+    <div class="fact"><b>Genere</b><span>Fantasy, avventura</span></div>
+    <div class="fact"><b>Lunghezza</b><span>circa 180 pagine</span></div>
+    <div class="fact"><b>Formato</b><span>Ebook su Amazon · cartaceo in arrivo</span></div>
+  </div>
+  <p class="note"><b>Per cominciare:</b> il primo capitolo si legge gratis online, anche in classe sulla LIM: <a href="https://blunikoblu.github.io/iquattroguardiani/estratto.html">blunikoblu.github.io/iquattroguardiani/estratto.html</a>. Le attività di questo kit riguardano i capitoli 1–5.</p>
+</section>
+
+<section class="pb">
+  <div class="k">I personaggi</div>
+  <h2>I quattro amici di Marechiaro</h2>
+  <figure class="fig"><img src="img/kit/protagonisti.jpg" alt="Marco, Sophia, Giulia e Luca"><figcaption>Marco, Sophia, Giulia e Luca.</figcaption></figure>
+  <div class="chars">
+    <div class="char"><h4>Marco</h4><div class="stone blu">Pietra blu · il Flusso</div><p>Ha dodici anni e porta sempre la giacca blu di suo padre, troppo grande. Sa leggere il mare: sente da che parte gira la corrente.</p></div>
+    <div class="char"><h4>Sophia</h4><div class="stone bia">Pietra bianca · la Luce</div><p>Corre sempre, con la coda alta di capelli scuri, e tiene il conto delle gare vinte. È la più coraggiosa, a volte troppo.</p></div>
+    <div class="char"><h4>Giulia</h4><div class="stone mar">Pietra marrone · la Memoria</div><p>Ha gli occhiali e una borsa a tracolla piena di quaderni. Legge i libri del nonno e copia tutto quello che vede.</p></div>
+    <div class="char"><h4>Luca</h4><div class="stone ver">Pietra verde · la Natura</div><p>È il più piccolo, nove anni, con le tasche piene di sassi e conchiglie. Sente gli animali, a cominciare dai delfini.</p></div>
+  </div>
+</section>
+
+<section class="pb">
+  <div class="k">Temi per la classe</div>
+  <h2>Di che cosa si può parlare</h2>
+  <div class="theme"><b>Amicizia e lavoro di squadra.</b> Le quattro pietre si accendono solo quando si toccano. Ognuno ha un dono diverso, e da soli non basterebbero.</div>
+  <div class="theme"><b>Talenti nascosti.</b> Prima ancora di toccare le pietre, i ragazzi hanno già il loro dono: Marco sente le correnti, Luca gli animali, Giulia sa leggere le rune, Sophia non ha paura del buio. Le pietre lo fanno solo crescere.</div>
+  <div class="theme"><b>Coraggio e prudenza.</b> Sophia grida a una voce nel buio, Giulia ricorda le regole delle grotte. Chi ha ragione? Il libro mostra che servono tutte e due le cose.</div>
+  <div class="theme"><b>Il mare, il lavoro, la comunità.</b> Pescatori a Marechiaro, raccoglitrici di sale a Luminos, lo stesso saluto: «Buona marea». Due mondi che si somigliano più di quanto sembri.</div>
+  <div class="theme"><b>Il ricordo di chi non c'è più.</b> Il padre di Marco non c'è più da due anni: la sua lampara è ancora a prua della barca, spenta. Il tema è trattato con delicatezza. È utile saperlo prima di leggere il libro in classe, se ci sono alunni che hanno vissuto un lutto.</div>
+  <figure class="fig"><img src="img/kit/pietre.jpg" alt="Le quattro pietre: blu, verde, marrone e bianca"><figcaption>Le quattro pietre: il Flusso, la Natura, la Memoria, la Luce.</figcaption></figure>
+</section>
+
+<section class="pb">
+  <div class="k">Attività</div>
+  <h2>Sei attività sui capitoli 1–5</h2>
+  <p>Ogni attività indica i capitoli di riferimento, la durata indicativa e le materie coinvolte. Si possono usare anche separatamente.</p>
+
+  <div class="act"><h4>1. La mappa di Marechiaro</h4>
+    <div class="meta">Capitolo 1 · 1 ora · Italiano, geografia, arte</div>
+    <p>Dopo la lettura del primo capitolo, la classe disegna la mappa del paese: il molo dove Tonino rammenda le reti, la Secca da cui bisogna girare al largo, le scogliere, la Grotta dei Sussurri. Ogni luogo va giustificato con una frase del testo.</p>
+    <p><i>Obiettivo:</i> leggere con attenzione i dettagli e trasformare una descrizione in uno spazio.</p></div>
+
+  <div class="act"><h4>2. L'alfabeto delle rune</h4>
+    <div class="meta">Capitoli 1–2 · 1 ora · Italiano, storia, arte</div>
+    <p>Giulia copia i simboli della grotta e riconosce le rune dei libri del nonno. Gli alunni, a coppie, inventano un alfabeto segreto di simboli e scrivono un messaggio. Le coppie si scambiano i messaggi e provano a decifrarli.</p>
+    <p><i>Aggancio:</i> le scritture antiche (rune, geroglifici, alfabeti dei popoli del mare).</p></div>
+
+  <div class="act"><h4>3. La mia pietra</h4>
+    <div class="meta">Capitolo 2 · 1 ora · Italiano, educazione civica</div>
+    <p>Se dalla Grotta dei Sussurri uscisse una quinta pietra per te, di che colore sarebbe e quale dono avrebbe? Ogni alunno disegna la sua pietra e scrive un breve testo: <i>«Il mio dono è… lo uso per…»</i>. Il dono deve partire da qualcosa che sa già fare davvero.</p>
+    <p><i>Obiettivo:</i> riconoscere i propri talenti e quelli dei compagni.</p></div>
+
+  <div class="act"><h4>4. Un mondo con i cinque sensi</h4>
+    <div class="meta">Capitolo 3 · 1–2 ore · Italiano</div>
+    <p>Quando arrivano a Luminos, Marco nota prima di tutto l'aria che sa di sale; il sale brilla e scricchiola sotto le scarpe. Gli alunni descrivono un luogo inventato usando tutti e cinque i sensi, almeno una frase per senso, e poi lo leggono ad alta voce senza dire il nome: la classe lo disegna.</p></div>
+
+  <div class="act"><h4>5. Il canto delle raccoglitrici</h4>
+    <div class="meta">Capitolo 5 · 1 ora · Italiano, musica, storia locale</div>
+    <p>Le raccoglitrici di sale cantano mentre lavorano, e la canzone parla di un tempo in cui pescatori e raccoglitori erano un solo popolo. La classe raccoglie canti di lavoro o modi di dire del proprio territorio, chiedendo a nonni e famiglie, poi scrive insieme una strofa nuova per un canto del proprio paese.</p></div>
+
+  <div class="act"><h4>6. Cristalli di sale (scienze)</h4>
+    <div class="meta">Capitoli 2–5 · 2 momenti a distanza di alcuni giorni · Scienze</div>
+    <p>A Luminos il sale brilla di luce propria; nel nostro mondo forma cristalli. Si scioglie sale da cucina in acqua calda fino a saturazione, si appende un filo di cotone in un barattolo e si osserva per alcuni giorni la crescita dei cristalli, annotando ogni volta che cosa cambia, come farebbe Giulia sul suo taccuino. L'acqua calda la prepara l'insegnante.</p>
+    <p><i>Aggancio:</i> le saline, l'evaporazione, le maree.</p></div>
+
+  <div class="note"><b>Visita a Luminos in classe.</b> Il mondo del libro si può esplorare online, anche sulla LIM: il paese di Marechiaro, la grotta, la spiaggia di sale. Non c'è chat libera e non si chiedono dati personali. <a href="https://blunikoblu.github.io/iquattroguardiani/">blunikoblu.github.io/iquattroguardiani</a></div>
+</section>
+
+<section class="pb q">
+  <div class="k">Domande per la discussione</div>
+  <h2>Capitolo per capitolo</h2>
+  <h4>Capitolo 1 · Una giornata ordinaria a Marechiaro</h4>
+  <ul><li>Che cosa ci dice di Marco la giacca troppo grande che porta sempre?</li><li>Sophia tiene il conto delle gare. Perché, secondo voi, per lei è così importante vincere?</li><li>Tonino saluta tutti con «Buona marea». Esiste un saluto tipico del vostro paese o della vostra famiglia?</li></ul>
+  <h4>Capitolo 2 · Il lago di cristallo</h4>
+  <ul><li>Marco aveva promesso di tornare indietro se fosse successo qualcosa di strano. Ha fatto bene a cambiare idea?</li><li>Perché le pietre scelgono proprio questi quattro ragazzi?</li></ul>
+  <h4>Capitolo 3 · Un nuovo mondo</h4>
+  <ul><li>«Allora ci andiamo insieme.» Che cosa cambia quando una decisione difficile si prende in gruppo?</li><li>Che cosa c'è di uguale tra Marechiaro e Luminos? Che cosa è diverso?</li></ul>
+  <h4>Capitolo 4 · La profezia</h4>
+  <ul><li>Sophia dice: «Noi non siamo nessuno». Vi è mai capitato di sentirvi così davanti a un compito grande?</li><li>La Regina dice che possono ancora tornare indietro. Voi che cosa avreste fatto?</li></ul>
+  <h4>Capitolo 5 · Il Giardino dell'Equilibrio</h4>
+  <ul><li>Aldor dice che le pietre fanno solo metà del lavoro e l'altra metà la fanno i ragazzi. Che cosa vuol dire, nella vita di tutti i giorni?</li><li>Sophia scopre che il suo dono è più forte quando è arrabbiata o ha paura. Come si impara a controllare le emozioni forti?</li></ul>
+</section>
+
+<section class="pb">
+  <div class="k">Risorse</div>
+  <h2>Link utili</h2>
+  <ul class="links">
+    <li><b>Primo capitolo gratuito:</b> <a href="https://blunikoblu.github.io/iquattroguardiani/estratto.html">blunikoblu.github.io/iquattroguardiani/estratto.html</a></li>
+    <li><b>Il mondo di Luminos, esplorabile online:</b> <a href="https://blunikoblu.github.io/iquattroguardiani/">blunikoblu.github.io/iquattroguardiani</a></li>
+    <li><b>L'ebook su Amazon:</b> <a href="https://www.amazon.it/dp/B0HP6N6GNN">amazon.it/dp/B0HP6N6GNN</a></li>
+    <li><b>Avviso per l'uscita del cartaceo:</b> <a href="https://tally.so/r/ArpXaN">tally.so/r/ArpXaN</a> (modulo per adulti)</li>
+    <li><b>Per scrivere all'autore</b> (incontri in classe e in biblioteca, domande sul kit): <a href="mailto:iquattroguardiani@gmail.com">iquattroguardiani@gmail.com</a></li>
+  </ul>
+  <figure class="fig"><img src="img/kit/spiaggia.jpg" alt="La spiaggia di sale di Luminos sotto due soli"><figcaption>Luminos: la spiaggia di sale sotto due soli, uno d'argento e uno d'oro.</figcaption></figure>
+  <p class="foot">Kit gratuito, liberamente stampabile e fotocopiabile per uso didattico. © 2026 Nicola Gobbini. Le illustrazioni sono state create con l'intelligenza artificiale.</p>
+  <p class="noprint"><a href="kit-insegnanti.pdf">Scarica il kit in PDF</a></p>
+</section>
+
+</div>
+</body>
+</html>

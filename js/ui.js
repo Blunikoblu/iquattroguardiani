@@ -1,7 +1,7 @@
 // Interfaccia: intro, HUD, pannelli, notifiche, impostazioni, modalità elenco.
 // Tutto il testo variabile passa da textContent (tramite h()).
-import { AVATARS, EMOTES, FRASI, nomeCasuale, isNome } from './config.js?v=202611191652';
-import { h } from './util.js?v=202611191652';
+import { AVATARS, EMOTES, FRASI, nomeCasuale, isNome } from './config.js?v=202611192230';
+import { h } from './util.js?v=202611192230';
 
 const $ = id => document.getElementById(id);
 
