@@ -1,20 +1,20 @@
 // Luminos · il mondo del libro. Punto di ingresso: collega mondo, personaggi, rete e interfaccia.
 import * as THREE from 'three';
-import { createFX } from './fx.js?v=202611191258';
-import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611191258';
-import { h } from './util.js?v=202611191258';
-import { audio } from './audio.js?v=202611191258';
-import { Avatar, previewRenderer } from './avatars.js?v=202611191258';
-import { buildWorld, zoneOf, regionOf } from './world.js?v=202611191258';
-import { createDiario } from './diario.js?v=202611191258';
-import { createPowers } from './powers.js?v=202611191258';
-import { createAttivita } from './attivita.js?v=202611191258';
-import { createLuoghi } from './luoghi.js?v=202611191258';
-import { RUNE_CACCIA } from './rune.js?v=202611191258';
-import { testo } from './testi.js?v=202611191258';
-import { createCollider, createPlayer } from './player.js?v=202611191258';
-import { createNet } from './net.js?v=202611191258';
-import { createUI } from './ui.js?v=202611191258';
+import { createFX } from './fx.js?v=202611191625';
+import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611191625';
+import { h } from './util.js?v=202611191625';
+import { audio } from './audio.js?v=202611191625';
+import { Avatar, previewRenderer } from './avatars.js?v=202611191625';
+import { buildWorld, zoneOf, regionOf } from './world.js?v=202611191625';
+import { createDiario } from './diario.js?v=202611191625';
+import { createPowers } from './powers.js?v=202611191625';
+import { createAttivita } from './attivita.js?v=202611191625';
+import { createLuoghi } from './luoghi.js?v=202611191625';
+import { RUNE_CACCIA } from './rune.js?v=202611191625';
+import { testo } from './testi.js?v=202611191625';
+import { createCollider, createPlayer } from './player.js?v=202611191625';
+import { createNet } from './net.js?v=202611191625';
+import { createUI } from './ui.js?v=202611191625';
 
 const isTouch = matchMedia('(pointer: coarse)').matches;
 if (new URLSearchParams(location.search).has('rec')) document.documentElement.classList.add('rec'); // riprese: senza interfaccia
@@ -420,7 +420,7 @@ function libroPanel() {
   const social = [['Instagram', data.instagram], ['Facebook', data.facebook], ['TikTok', data.tiktok], ['Threads', data.threads]].filter(x => x[1]);
   const inp = h('input', { type: 'text', maxlength: '24', autocomplete: 'off', placeholder: 'una parola', 'aria-label': 'Parola segreta del libro' });
   return [...world.bookPanel(),
-    data.acquisto ? h('p', {}, h('a', { class: 'btn', href: data.acquisto, target: '_blank', rel: 'noopener' }, 'Dove trovare il libro')) : null,
+    data.acquisto ? h('p', {}, h('a', { class: 'btn', href: data.acquisto, target: '_blank', rel: 'noopener' }, 'Compra l\'ebook su Amazon')) : null,
     data.estratto ? h('p', {}, h('a', { href: data.estratto, target: '_blank', rel: 'noopener', style: 'color:#f5c56b' }, 'Leggi un estratto gratuito')) : null,
     social.length ? h('p', { class: 'muted' }, 'Canali ufficiali (per adulti): ', ...social.flatMap(([n, u], i) => [i ? ' · ' : '', h('a', { href: u, target: '_blank', rel: 'noopener', style: 'color:#f5c56b' }, n)])) : null,
     Array.isArray(data.parole) && data.parole.length ? h('div', { class: 'parola' }, h('h3', {}, 'Hai il libro?'), h('p', { class: 'muted' }, 'Tra le pagine ci sono parole che aprono sorprese qui a Luminos. La parola non lascia il tuo dispositivo.'),
@@ -565,8 +565,12 @@ requestAnimationFrame(frame);
   const u = data.uscita && /^\d{4}-\d{2}-\d{2}$/.test(data.uscita) ? new Date(data.uscita + 'T00:00:00') : null;
   const now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const g = u ? Math.max(0, Math.round((u - today) / 86400000)) : null;
-  $('introCount').textContent = g != null ? (g === 0 ? 'Il libro esce oggi!' : `Mancano ${g} ${g === 1 ? 'giorno' : 'giorni'} all'uscita del libro.`) : `Uscita: ${data.periodo || 'presto'}.`;
+  $('introCount').textContent = data.acquisto ? 'L\'ebook è disponibile su Amazon. Il cartaceo arriva presto.' : g != null ? (g === 0 ? 'Il libro esce oggi!' : `Mancano ${g} ${g === 1 ? 'giorno' : 'giorni'} all'uscita del libro.`) : `Uscita: ${data.periodo || 'presto'}.`;
   $('introSignup').onclick = () => ui.openPanel(world.signupPanel(), { label: 'Avvisami quando esce' });
+  if (data.acquisto) {
+    $('introSignup').textContent = 'Avvisami quando esce il cartaceo';
+    $('introCount').append(' ', h('a', { href: data.acquisto, target: '_blank', rel: 'noopener', style: 'color:#f5c56b' }, 'Vai all\'ebook'));
+  }
 }
 
 // ---------- Volo d'apertura su Marechiaro (si salta toccando lo schermo) ----------

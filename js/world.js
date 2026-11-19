@@ -7,10 +7,10 @@
 // Si vede solo la regione in cui ti trovi (più leggero sui telefoni).
 // I pannelli sono costruiti con h() (DOM + textContent): niente innerHTML.
 import * as THREE from 'three';
-import { AVATARS } from './config.js?v=202611191258';
-import { h, wrapText } from './util.js?v=202611191258';
-import { Avatar } from './avatars.js?v=202611191258';
-import { drawRune } from './secrets.js?v=202611191258';
+import { AVATARS } from './config.js?v=202611191625';
+import { h, wrapText } from './util.js?v=202611191625';
+import { Avatar } from './avatars.js?v=202611191625';
+import { drawRune } from './secrets.js?v=202611191625';
 
 const GOLD = 0xf5c56b;
 let seed = 11;
@@ -315,13 +315,14 @@ export function buildWorld(scene, data, hooks) {
   add({ id: 'libro', name: 'Il libro', pos: [4.6, 1.2, 13.1], radius: 2.2, markerY: 2.4, desc: 'Copertina, uscita e iscrizione.', open: () => bookPanel() });
   box(0.9, 1.0, 0.6, 0x6a4a2c, 7.4, 0.5, 13.6, gM); solid(7.4, 13.6, 1.1, 0.8);
   const countTex = canvasTex(400, 300, () => {}), regSign = sign(0.9, 0.68, countTex, 7.4, 1.4, 13.28, 0, gM); regSign.rotation.x = -0.28;
-  add({ id: 'registro', name: 'Avvisami quando esce', pos: [7.4, 1.1, 13.1], radius: 2.2, markerY: 2.2, desc: 'Iscrizione per sapere quando esce il libro.', open: () => signupPanel() });
+  add({ id: 'registro', name: data.acquisto ? 'Avvisami per il cartaceo' : 'Avvisami quando esce', pos: [7.4, 1.1, 13.1], radius: 2.2, markerY: 2.2, desc: data.acquisto ? 'Iscrizione per sapere quando esce il libro cartaceo.' : 'Iscrizione per sapere quando esce il libro.', open: () => signupPanel() });
   function drawCount() {
     const { g } = countTex.userData, c = countdown();
     g.fillStyle = 'rgba(250,244,230,.97)'; g.fillRect(0, 0, 400, 300); g.strokeStyle = '#2f4f9a'; g.lineWidth = 6; g.strokeRect(10, 10, 380, 280);
-    g.textAlign = 'center'; g.fillStyle = '#2f4f9a'; g.font = 'bold 30px Georgia'; g.fillText('IL LIBRO ESCE', 200, 70);
+    g.textAlign = 'center'; g.fillStyle = '#2f4f9a'; g.font = 'bold 30px Georgia'; g.fillText(data.acquisto ? 'IL LIBRO È USCITO' : 'IL LIBRO ESCE', 200, 70);
     g.fillStyle = '#1a1a2a';
-    if (c.giorni != null) { g.font = 'bold 92px Georgia'; g.fillText(String(c.giorni), 200, 180); g.font = '26px Georgia'; g.fillText(c.giorni === 1 ? 'giorno' : 'giorni', 200, 220); g.font = '20px Georgia'; g.fillText('lascia la tua email: ti avviso', 200, 262); }
+    if (data.acquisto) { g.font = 'bold 44px Georgia'; g.fillText('ebook', 200, 140); g.font = '28px Georgia'; g.fillText('su Amazon', 200, 180); g.font = '20px Georgia'; g.fillText('cartaceo in arrivo: ti avviso', 200, 250); }
+    else if (c.giorni != null) { g.font = 'bold 92px Georgia'; g.fillText(String(c.giorni), 200, 180); g.font = '26px Georgia'; g.fillText(c.giorni === 1 ? 'giorno' : 'giorni', 200, 220); g.font = '20px Georgia'; g.fillText('lascia la tua email: ti avviso', 200, 262); }
     else { g.font = 'bold 40px Georgia'; wrapText(g, c.periodo || 'presto', 200, 150, 340, 46, 2); g.font = '20px Georgia'; g.fillText('lascia la tua email: ti avviso', 200, 250); }
     countTex.needsUpdate = true;
   }
@@ -823,12 +824,12 @@ export function buildWorld(scene, data, hooks) {
       h('h3', {}, 'I quattro Guardiani e il regno perduto della Luce'),
       h('p', {}, 'Di Nicola Gobbini. Il primo volume della serie «I Quattro Guardiani», per ragazzi dai 9 ai 12 anni.'),
       h('p', { class: 'quote' }, 'Il mare ricorda ogni luce. Anche quelle che credevi spente.'),
-      c.giorni != null ? h('div', { class: 'big', style: 'font-size:32px;clear:both' }, c.giorni === 0 ? 'Esce oggi!' : `${c.giorni} ${c.giorni === 1 ? 'giorno' : 'giorni'} all'uscita`) : h('p', { style: 'color:#f5c56b;clear:both' }, `Uscita: ${c.periodo || 'presto'}. La data esatta arriva qui appena c'è.`),
-      h('p', {}, h('button', { class: 'btn', type: 'button', onclick: () => hooks.openPanel(signupPanel(), 'Avvisami quando esce') }, 'Avvisami all\'uscita'))];
+      data.acquisto ? h('p', { style: 'color:#f5c56b;clear:both' }, 'L\'ebook è disponibile su Amazon (formato Kindle). La versione cartacea arriva presto.') : c.giorni != null ? h('div', { class: 'big', style: 'font-size:32px;clear:both' }, c.giorni === 0 ? 'Esce oggi!' : `${c.giorni} ${c.giorni === 1 ? 'giorno' : 'giorni'} all'uscita`) : h('p', { style: 'color:#f5c56b;clear:both' }, `Uscita: ${c.periodo || 'presto'}. La data esatta arriva qui appena c'è.`),
+      h('p', {}, h('button', { class: 'btn', type: 'button', onclick: () => hooks.openPanel(signupPanel(), 'Avvisami quando esce') }, data.acquisto ? 'Avvisami quando esce il cartaceo' : 'Avvisami all\'uscita'))];
   }
   function signupPanel() {
-    return [h('h2', {}, 'Avvisami quando esce'),
-      h('p', {}, 'Lascia la tua email e ricevi un messaggio il giorno in cui il libro esce. Niente altro.'),
+    return [h('h2', {}, data.acquisto ? 'Avvisami quando esce il cartaceo' : 'Avvisami quando esce'),
+      h('p', {}, data.acquisto ? 'L\'ebook è già disponibile. Lascia la tua email: ti scriviamo quando esce la versione cartacea. Nessuna pubblicità.' : 'Lascia la tua email e ricevi un messaggio il giorno in cui il libro esce. Niente altro.'),
       h('p', { class: 'muted' }, 'Il modulo è per adulti: genitori, insegnanti, bibliotecari e lettori grandi. Se hai meno di 14 anni, chiedi a un genitore di iscriversi per te.'),
       data.modulo ? h('p', {}, h('a', { class: 'btn', href: data.modulo, target: '_blank', rel: 'noopener' }, 'Apri il modulo di iscrizione')) : h('p', { style: 'color:#f5c56b' }, 'Il modulo arriva a breve.')];
   }

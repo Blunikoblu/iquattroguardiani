@@ -4,12 +4,12 @@
 // Sincronizzazione: solo messaggi brevi e validati (net.act). Ciò che dipende dall'ora (la marea) è calcolato
 // dall'orologio, uguale per tutti senza server. Tutto funziona anche da soli.
 import * as THREE from 'three';
-import { h } from './util.js?v=202611191258';
-import { tideState, zoneOf } from './world.js?v=202611191258';
-import { RUNE_CACCIA } from './rune.js?v=202611191258';
-import { drawRune } from './secrets.js?v=202611191258';
-import { testo } from './testi.js?v=202611191258';
-import { AVATARS } from './config.js?v=202611191258';
+import { h } from './util.js?v=202611191625';
+import { tideState, zoneOf } from './world.js?v=202611191625';
+import { RUNE_CACCIA } from './rune.js?v=202611191625';
+import { drawRune } from './secrets.js?v=202611191625';
+import { testo } from './testi.js?v=202611191625';
+import { AVATARS } from './config.js?v=202611191625';
 
 const NOMEG = Object.fromEntries(AVATARS.map(a => [a.id, a.nome]));
 
