@@ -4,12 +4,12 @@
 // Sincronizzazione: solo messaggi brevi e validati (net.act). Ciò che dipende dall'ora (la marea) è calcolato
 // dall'orologio, uguale per tutti senza server. Tutto funziona anche da soli.
 import * as THREE from 'three';
-import { h } from './util.js?v=202611191217';
-import { tideState, zoneOf } from './world.js?v=202611191217';
-import { RUNE_CACCIA } from './rune.js?v=202611191217';
-import { drawRune } from './secrets.js?v=202611191217';
-import { testo } from './testi.js?v=202611191217';
-import { AVATARS } from './config.js?v=202611191217';
+import { h } from './util.js?v=202611191219';
+import { tideState, zoneOf } from './world.js?v=202611191219';
+import { RUNE_CACCIA } from './rune.js?v=202611191219';
+import { drawRune } from './secrets.js?v=202611191219';
+import { testo } from './testi.js?v=202611191219';
+import { AVATARS } from './config.js?v=202611191219';
 
 const NOMEG = Object.fromEntries(AVATARS.map(a => [a.id, a.nome]));
 
@@ -136,7 +136,7 @@ export function createAttivita({ world, scene, ui, audio, diario, powers, net, m
     arrows.mat = am; }
   let race = null; // { id, at (s), joined, running, t0, results: Map(nome -> t), mine }
   const raceId = () => Math.random().toString(36).slice(2, 10);
-  const othersInMarechiaro = () => [...hooks.others().values()].filter(o => o.meta.zona === 'marechiaro' || o.meta.zona === 'scogli').length;
+  const othersInMarechiaro = () => [...hooks.others().values()].filter(o => (o.has && o.x < 100) || o.meta.zona === 'marechiaro' || o.meta.zona === 'scogli').length;
   function raceUse() {
     ui.closePanel();
     if (race && !race.done) { hooks.toast('C\'è già una gara in corso.'); return; }

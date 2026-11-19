@@ -4,8 +4,8 @@
 // - NIENTE testo libero: chi riceve accetta solo nomi e frasi che esistono già nelle liste del mondo.
 // - Accesso anonimo invisibile (sessione per scheda, in sessionStorage). Nessuna email, nessun dato personale.
 // - Se qualcosa non va: canale pubblico di ripiego, poi modalità individuale.
-import { SUPABASE_URL, SUPABASE_KEY, CHANNEL_PRIVATE, CHANNEL_PUBLIC, NET, AVATARS, EMOTES, FRASI, WORLD, ZONES, isNome } from './config.js?v=202611191217';
-import { clamp, randomId } from './util.js?v=202611191217';
+import { SUPABASE_URL, SUPABASE_KEY, CHANNEL_PRIVATE, CHANNEL_PUBLIC, NET, AVATARS, EMOTES, FRASI, WORLD, ZONES, isNome } from './config.js?v=202611191219';
+import { clamp, randomId } from './util.js?v=202611191219';
 
 const AV = new Map(AVATARS.map(a => [a.id, a]));
 const SAY_IDS = new Set([...EMOTES.map(e => e.id), ...FRASI.map(f => f.id)]);
@@ -20,7 +20,7 @@ export function createNet(h) {
   let last = { x: 0, z: 0, r: 0, a: 0, sent: 0, sx: 99, sz: 99, sr: 99, sa: 0 };
   let sbPromise = null, lastSay = 0;
   function client() {
-    sbPromise ||= import('../supabase.min.js?v=202611191217').then(({ createClient }) => (sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    sbPromise ||= import('../supabase.min.js?v=202611191219').then(({ createClient }) => (sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: { storage: window.sessionStorage, storageKey: 'luminos-auth', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
       realtime: { params: { eventsPerSecond: 20 }, heartbeatIntervalMs: 20000 },
     })));
@@ -31,7 +31,7 @@ export function createNet(h) {
 
   function validMeta(m) {
     if (!m || typeof m !== 'object' || !AV.has(m.a) || !isNome(m.n)) return null;
-    return { nick: m.n, av: m.a, col: AV.get(m.a).col, zona: ZONE_IDS.has(m.z) ? m.z : 'piazza' };
+    return { nick: m.n, av: m.a, col: AV.get(m.a).col, zona: ZONE_IDS.has(m.z) ? m.z : 'marechiaro' };
   }
 
   function allow(id) {
@@ -160,7 +160,7 @@ export function createNet(h) {
   }
   setInterval(() => sendPos(last.x, last.z, last.r), NET.heartbeatMs);
 
-  const toMeta = m => ({ n: isNome(m.nick) ? m.nick : 'Onda Gentile', a: AV.has(m.av) ? m.av : 'marco', z: ZONE_IDS.has(m.zona) ? m.zona : 'molo' });
+  const toMeta = m => ({ n: isNome(m.nick) ? m.nick : 'Onda Gentile', a: AV.has(m.av) ? m.av : 'marco', z: ZONE_IDS.has(m.zona) ? m.zona : 'marechiaro' });
 
   return {
     myId,

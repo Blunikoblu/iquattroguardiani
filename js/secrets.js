@@ -2,7 +2,7 @@
 // Non passa dalla rete e non interferisce con gli altri.
 // Ogni segreto viene da un dettaglio dei primi capitoli del libro.
 import * as THREE from 'three';
-import { h } from './util.js?v=202611191217';
+import { h } from './util.js?v=202611191219';
 
 export const SECRETS = [
   { id: 'gara', dove: 'marechiaro', nome: 'La gara al molo', aiuto: 'Sophia tiene il punteggio da quando aveva sei anni. Parti dalla fontana.' },

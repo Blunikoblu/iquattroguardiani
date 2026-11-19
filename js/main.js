@@ -1,20 +1,20 @@
 // Luminos · il mondo del libro. Punto di ingresso: collega mondo, personaggi, rete e interfaccia.
 import * as THREE from 'three';
-import { createFX } from './fx.js?v=202611191217';
-import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611191217';
-import { h } from './util.js?v=202611191217';
-import { audio } from './audio.js?v=202611191217';
-import { Avatar, previewRenderer } from './avatars.js?v=202611191217';
-import { buildWorld, zoneOf, regionOf } from './world.js?v=202611191217';
-import { createDiario } from './diario.js?v=202611191217';
-import { createPowers } from './powers.js?v=202611191217';
-import { createAttivita } from './attivita.js?v=202611191217';
-import { createLuoghi } from './luoghi.js?v=202611191217';
-import { RUNE_CACCIA } from './rune.js?v=202611191217';
-import { testo } from './testi.js?v=202611191217';
-import { createCollider, createPlayer } from './player.js?v=202611191217';
-import { createNet } from './net.js?v=202611191217';
-import { createUI } from './ui.js?v=202611191217';
+import { createFX } from './fx.js?v=202611191219';
+import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611191219';
+import { h } from './util.js?v=202611191219';
+import { audio } from './audio.js?v=202611191219';
+import { Avatar, previewRenderer } from './avatars.js?v=202611191219';
+import { buildWorld, zoneOf, regionOf } from './world.js?v=202611191219';
+import { createDiario } from './diario.js?v=202611191219';
+import { createPowers } from './powers.js?v=202611191219';
+import { createAttivita } from './attivita.js?v=202611191219';
+import { createLuoghi } from './luoghi.js?v=202611191219';
+import { RUNE_CACCIA } from './rune.js?v=202611191219';
+import { testo } from './testi.js?v=202611191219';
+import { createCollider, createPlayer } from './player.js?v=202611191219';
+import { createNet } from './net.js?v=202611191219';
+import { createUI } from './ui.js?v=202611191219';
 
 const isTouch = matchMedia('(pointer: coarse)').matches;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -601,7 +601,7 @@ tutorial.refresh();
 // arrivo dal QR code stampato nel libro: un piccolo benvenuto e un distintivo (nessun dato raccolto)
 if (new URLSearchParams(location.search).get('da') === 'libro') setTimeout(() => { secrets.badge('lettore'); ui.toast('📖 Benvenuto dal libro! Le pagine continuano qui.'); }, 2500);
 audio.unlock();
-net.start({ nick: choice.nick, av: choice.av, zona: 'molo' });
+net.start({ nick: choice.nick, av: choice.av, zona: myZone });
 ui.toast(`Benvenuto a Marechiaro, ${choice.nick}. Il rombo dorato indica che puoi interagire. La barca di Marco è legata al molo.`);
 setTimeout(() => { $('help').style.opacity = 0; }, 14000);
 
