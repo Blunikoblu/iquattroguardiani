@@ -25,74 +25,120 @@ const lighten = (hex, k) => new THREE.Color(hex).lerp(new THREE.Color(0xffffff),
 
 // Ogni costruttore riempie: body (gruppo che contiene torso e testa), head, arms[sx,dx], legs[sx,dx], extra.
 // Le coordinate di braccia e torso sono relative al bacino (body), quelle delle gambe al suolo (g).
-// I quattro Guardiani, come nelle illustrazioni del libro: Marco con la giacca blu di suo padre (troppo grande),
-// Sophia con la coda alta di capelli scuri, Giulia con gli occhiali e il taccuino, Luca il più piccolo, ricci e felpa verde.
-// Tutti con lo zaino. La pietra (c = colore) brilla nella mano destra.
-const SKIN = 0xe9bb96;
+// I quattro Guardiani, come nelle illustrazioni del libro (stile morbido, testa grande, occhi espressivi):
+// Marco con la felpa blu di suo padre, troppo grande; Sophia con la coda alta di capelli scuri e i pantaloncini;
+// Giulia con gli occhiali, i capelli mossi e il taccuino; Luca, il più piccolo, ricci e felpa verde. Tutti con lo zaino.
+// La pietra (c = colore) brilla nella mano destra.
+const SKIN = 0xf0c2a0;
+const std = (c, o = {}) => { const k = 's' + c + JSON.stringify(o); if (!matCache.has(k)) matCache.set(k, new THREE.MeshStandardMaterial({ color: c, roughness: 0.82, metalness: 0, ...o })); return matCache.get(k); };
+const sph = (r, w = 16, h = 12) => G(`sp${r},${w},${h}`, () => new THREE.SphereGeometry(r, w, h));
+const cap = (r, l) => G(`cp${r},${l}`, () => new THREE.CapsuleGeometry(r, l, 4, 10));
+const capDown = (r, l) => G(`cpd${r},${l}`, () => new THREE.CapsuleGeometry(r, l, 4, 10).translate(0, -(l / 2 + r) + r, 0));
+function rlimb(r, l, mat, x, y, z, parent) { const piv = new THREE.Group(); piv.position.set(x, y, z); parent.add(piv); part(capDown(r, l), mat, 0, 0, 0, piv); return piv; }
+const blob = (parent, mat, list) => list.forEach(([x, y, z, r, sx = 1, sy = 1, sz = 1]) => { const m = part(sph(r, 12, 10), mat, x, y, z, parent); m.scale.set(sx, sy, sz); });
+function face(r, o, s) {
+  const H = r.head, skin = std(SKIN), white = std(0xffffff, { roughness: 0.3 }), iris = std(o.iris ?? 0x5a3a22, { roughness: 0.25 }), dark = flat(0x1a120c), brow = std(o.brow ?? o.hair);
+  // testa tonda, un po' più larga che alta, con orecchie
+  const hd = part(sph(0.2 * s, 24, 18), skin, 0, 0, 0, H); hd.scale.set(1.04, 1, 0.98);
+  part(sph(0.045 * s, 10, 8), skin, -0.2 * s, -0.01 * s, 0.01, H); part(sph(0.045 * s, 10, 8), skin, 0.2 * s, -0.01 * s, 0.01, H);
+  r.eyes = [];
+  for (const sx of [-1, 1]) {
+    const eg = new THREE.Group(); eg.position.set(sx * 0.072 * s, 0.01 * s, -0.168 * s); H.add(eg);
+    const w = part(sph(0.048 * s, 14, 10), white, 0, 0, 0, eg); w.scale.set(0.85, 1.05, 0.5);
+    part(sph(0.032 * s, 12, 10), iris, 0, -0.003 * s, -0.016 * s, eg).scale.set(1, 1.08, 0.5);
+    part(sph(0.016 * s, 8, 6), dark, 0, -0.003 * s, -0.026 * s, eg).scale.set(1, 1, 0.4);
+    part(sph(0.008 * s, 6, 4), flat(0xffffff), sx * 0.01 * s - 0.006 * s, 0.014 * s, -0.031 * s, eg);
+    r.eyes.push(eg);
+    const b = part(box(0.07 * s, 0.014 * s, 0.02 * s), brow, sx * 0.075 * s, 0.075 * s, -0.172 * s, H); b.rotation.z = -sx * 0.12;
+    const ck = part(sph(0.03 * s, 8, 6), std(0xf09a8a, { transparent: true, opacity: 0.45 }), sx * 0.11 * s, -0.06 * s, -0.15 * s, H); ck.scale.set(1, 0.6, 0.4);
+  }
+  part(sph(0.022 * s, 8, 6), std(0xe8ae8c), 0, -0.03 * s, -0.2 * s, H);
+  const m = part(G('smile', () => new THREE.TorusGeometry(0.035, 0.007, 4, 12, Math.PI)), std(0x9a3a32), 0, -0.085 * s, -0.182 * s, H); m.rotation.z = Math.PI; m.scale.setScalar(s);
+}
+function hair(r, o, s) {
+  const H = r.head, m = std(o.hair, { roughness: 0.65 });
+  // calotta comune
+  const capm = part(sph(0.212 * s, 20, 14), m, 0, 0.03 * s, 0.018 * s, H); capm.scale.set(1.05, 0.98, 1.05);
+  if (o.style === 'messy') blob(H, m, [[-0.09, 0.15, -0.14, 0.07], [0.0, 0.17, -0.15, 0.075], [0.1, 0.14, -0.13, 0.065], [-0.15, 0.06, -0.1, 0.06], [0.16, 0.05, -0.09, 0.055], [-0.05, 0.22, 0.02, 0.08], [0.07, 0.21, 0.06, 0.08], [0, 0.12, 0.17, 0.09], [-0.12, 0.17, 0.08, 0.07], [0.13, 0.17, 0.05, 0.07]].map(a => [a[0] * s, a[1] * s, a[2] * s, a[3] * s]));
+  if (o.style === 'curls') { const L = []; for (let i = 0; i < 22; i++) { const th = i / 22 * Math.PI * 2, ph = 0.25 + (i % 3) * 0.35; L.push([Math.cos(th) * Math.sin(ph) * 0.2 * s, (0.08 + Math.cos(ph) * 0.15) * s, Math.sin(th) * Math.sin(ph) * 0.2 * s + 0.01, 0.055 * s]); } L.push([0, 0.2 * s, 0, 0.09 * s], [-0.08 * s, 0.14 * s, -0.15 * s, 0.06 * s], [0.07 * s, 0.15 * s, -0.15 * s, 0.06 * s]); blob(H, m, L); }
+  if (o.style === 'tail') {
+    blob(H, m, [[-0.08, 0.12, -0.15, 0.06, 1.3, 0.6, 0.8], [0.08, 0.12, -0.15, 0.06, 1.3, 0.6, 0.8], [-0.17, 0.0, -0.06, 0.05, 0.7, 1.4, 1], [0.17, 0.0, -0.06, 0.05, 0.7, 1.4, 1]].map(a => [a[0] * s, a[1] * s, a[2] * s, a[3] * s, a[4], a[5], a[6]]));
+    const t = new THREE.Group(); t.position.set(0, 0.17 * s, 0.17 * s); H.add(t);
+    part(sph(0.03 * s, 8, 6), std(0xd0607a), 0, 0, 0, t);
+    blob(t, m, [[0, -0.02, 0.06, 0.07], [0, -0.1, 0.12, 0.08], [0, -0.21, 0.15, 0.075], [0, -0.32, 0.15, 0.065], [0, -0.41, 0.13, 0.05]].map(a => [a[0] * s, a[1] * s, a[2] * s, a[3] * s]));
+    r.tail = t;
+  }
+  if (o.style === 'long') {
+    blob(H, m, [[-0.1, 0.13, -0.14, 0.07, 1.2, 0.7, 0.8], [0.06, 0.15, -0.15, 0.07, 1.4, 0.6, 0.8], [-0.2, -0.05, -0.04, 0.075, 0.8, 1.5, 1], [0.2, -0.05, -0.04, 0.075, 0.8, 1.5, 1], [-0.19, -0.22, 0.02, 0.08, 0.9, 1.4, 1], [0.19, -0.22, 0.02, 0.08, 0.9, 1.4, 1], [0, -0.12, 0.15, 0.17, 1.15, 1.3, 0.6], [-0.12, -0.3, 0.12, 0.09], [0.12, -0.3, 0.12, 0.09], [0, -0.32, 0.14, 0.1]].map(a => [a[0] * s, a[1] * s, a[2] * s, a[3] * s, a[4] ?? 1, a[5] ?? 1, a[6] ?? 1]));
+  }
+  if (o.glasses) { const gm = std(0x2a2522, { roughness: 0.4 }); for (const sx of [-1, 1]) { const g = part(G('rim', () => new THREE.TorusGeometry(0.048, 0.007, 6, 18)), gm, sx * 0.072 * s, 0.01 * s, -0.19 * s, H); g.scale.setScalar(s); } part(box(0.05 * s, 0.008, 0.008), gm, 0, 0.02 * s, -0.195 * s, H); }
+}
 function kid(c, r, o) {
   const s = o.s || 1;
-  const top = lam(o.top), sleeve = lam(o.sleeve ?? o.top), pants = lam(o.pants), hair = lam(o.hair), skin = lam(SKIN), shoe = lam(o.shoe ?? 0x5a4636);
+  const top = std(o.top), sleeve = std(o.sleeve ?? o.top), pants = std(o.pants), skin = std(SKIN), shoe = std(o.shoe ?? 0x6a5040), sole = std(0xeeeae2);
   r.hip = 0.56 * s;
-  const tw = o.big ? 0.42 : 0.36;
-  part(box(tw * s, 0.46 * s, 0.25 * s), top, 0, 0.23 * s, 0, r.body);
-  if (o.inner) part(box(0.12 * s, 0.38 * s, 0.02), lam(o.inner), 0, 0.25 * s, -0.13 * s, r.body);
-  if (o.hood) part(box(0.3 * s, 0.1 * s, 0.14 * s), top, 0, 0.47 * s, 0.1 * s, r.body);
-  // zaino
-  part(box(0.3 * s, 0.36 * s, 0.13 * s), lam(o.pack ?? 0x4a3a2e), 0, 0.26 * s, 0.19 * s, r.body);
-  r.headY = 0.64 * s;
-  part(box(0.32 * s, 0.32 * s, 0.3 * s), skin, 0, 0, 0, r.head);
-  part(box(0.35 * s, 0.11 * s, 0.33 * s), hair, 0, 0.17 * s, 0.01, r.head);
-  part(box(0.35 * s, 0.26 * s, 0.08 * s), hair, 0, 0.05 * s, 0.13 * s, r.head);
-  part(box(0.05 * s, 0.2 * s, 0.3 * s), hair, -0.17 * s, 0.06 * s, 0.02, r.head); part(box(0.05 * s, 0.2 * s, 0.3 * s), hair, 0.17 * s, 0.06 * s, 0.02, r.head);
-  part(box(0.3 * s, 0.07 * s, 0.05), hair, 0.03, 0.13 * s, -0.155 * s, r.head);
-  if (o.long) { part(box(0.4 * s, 0.42 * s, 0.1 * s), hair, 0, -0.16 * s, 0.14 * s, r.head); part(box(0.07 * s, 0.34 * s, 0.14 * s), hair, -0.19 * s, -0.14 * s, 0.03, r.head); part(box(0.07 * s, 0.34 * s, 0.14 * s), hair, 0.19 * s, -0.14 * s, 0.03, r.head); }
-  if (o.tail) { part(box(0.1 * s, 0.08 * s, 0.1 * s), hair, 0, 0.2 * s, 0.17 * s, r.head); const t = part(box(0.12 * s, 0.38 * s, 0.1 * s), hair, 0, 0.0, 0.24 * s, r.head); t.rotation.x = 0.45; }
-  if (o.curls) for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2; const m = part(box(0.09 * s, 0.09 * s, 0.09 * s), hair, Math.cos(a) * 0.15 * s, 0.2 * s + (i % 2) * 0.03, Math.sin(a) * 0.14 * s, r.head); m.rotation.set(a, a * 2, 0.3); }
-  if (o.messy) [[-0.1, 0.24, -0.06], [0.05, 0.25, 0.02], [0.13, 0.23, -0.08], [-0.04, 0.26, 0.1]].forEach(([x, y, z], i) => { const m = part(box(0.09 * s, 0.07 * s, 0.09 * s), hair, x * s, y * s, z * s, r.head); m.rotation.set(0.3 * i, i, -0.2 * i); });
-  r.eyes = [part(box(0.045 * s, 0.06 * s, 0.02), flat(0x2a1d16), -0.075 * s, 0.01, -0.155 * s, r.head), part(box(0.045 * s, 0.06 * s, 0.02), flat(0x2a1d16), 0.075 * s, 0.01, -0.155 * s, r.head)];
-  if (o.glasses) { const gl = flat(0x2a2522); for (const x of [-0.075, 0.075]) { part(box(0.1 * s, 0.015, 0.015), gl, x * s, 0.055 * s, -0.163 * s, r.head); part(box(0.1 * s, 0.015, 0.015), gl, x * s, -0.035 * s, -0.163 * s, r.head); part(box(0.015, 0.09 * s, 0.015), gl, (x - 0.05) * s, 0.01, -0.163 * s, r.head); part(box(0.015, 0.09 * s, 0.015), gl, (x + 0.05) * s, 0.01, -0.163 * s, r.head); } }
-  part(box(0.07 * s, 0.02, 0.02), flat(0x9a4a3a), 0, -0.09 * s, -0.155 * s, r.head);
-  const aw = o.big ? 0.11 : 0.09, al = o.big ? 0.44 : 0.4;
-  r.arms = [limb(aw * s, al * s, aw * s, sleeve, -(tw / 2 + 0.05) * s, 0.44 * s, 0, r.body), limb(aw * s, al * s, aw * s, sleeve, (tw / 2 + 0.05) * s, 0.44 * s, 0, r.body)];
-  r.arms.forEach(a => part(box(0.075 * s, 0.06 * s, 0.075 * s), skin, 0, -(al + 0.02) * s, 0, a));
-  r.stone = part(ico(0.05 * s, 0), new THREE.MeshBasicMaterial({ color: c }), 0, -(al + 0.07) * s, -0.04, r.arms[1]);
+  // busto (felpa o maglietta), un po' più largo se la felpa è grande
+  const bw = o.big ? 1.18 : 1;
+  const t = part(cap(0.15 * s, 0.17 * s), top, 0, 0.21 * s, 0, r.body); t.scale.set(1.12 * bw, 1, 0.8);
+  if (o.hood) { const hd = part(G('hood', () => new THREE.TorusGeometry(0.11, 0.045, 8, 16)), top, 0, 0.41 * s, 0.07 * s, r.body); hd.rotation.x = Math.PI / 2.4; hd.scale.setScalar(s * bw); }
+  if (o.inner) { const sh = part(cap(0.1 * s, 0.1 * s), std(o.inner), 0, 0.24 * s, -0.045 * s, r.body); sh.scale.set(0.9, 1, 0.6); part(box(0.008, 0.3 * s, 0.01), std(0xc8c8c8, { metalness: 0.6, roughness: 0.3 }), 0.06 * s, 0.22 * s, -0.115 * s * bw, r.body); }
+  if (o.strings) for (const sx of [-1, 1]) part(box(0.008, 0.12 * s, 0.008), std(0xeeeeee), sx * 0.04 * s, 0.31 * s, -0.12 * s, r.body);
+  // zaino con spallacci
+  const pk = std(o.pack ?? 0x4a3a2e);
+  const bag = part(cap(0.12 * s, 0.12 * s), pk, 0, 0.24 * s, 0.17 * s, r.body); bag.scale.set(1.15, 1, 0.55);
+  part(box(0.16 * s, 0.07 * s, 0.03), std(o.pack2 ?? 0x5a4636), 0, 0.15 * s, 0.24 * s, r.body);
+  for (const sx of [-1, 1]) { const st = part(box(0.035 * s, 0.32 * s, 0.03 * s), pk, sx * 0.1 * s * bw, 0.25 * s, -0.11 * s, r.body); st.rotation.x = 0.1; }
+  // testa
+  r.headY = 0.62 * s;
+  face(r, o, s); hair(r, o, s);
+  // braccia (spalla come perno), mani
+  const al = (o.big ? 0.26 : 0.22) * s, ar = (o.big ? 0.06 : 0.05) * s, sx0 = 0.19 * s * bw;
+  r.arms = [rlimb(ar, al, sleeve, -sx0, 0.36 * s, 0, r.body), rlimb(ar, al, sleeve, sx0, 0.36 * s, 0, r.body)];
+  if (o.short) r.arms.forEach(a => part(capDown(0.042 * s, 0.12 * s), skin, 0, -0.14 * s, 0, a));
+  r.arms.forEach(a => part(sph(0.048 * s, 10, 8), skin, 0, -(al + ar + (o.big ? -0.02 : 0.02) * s), 0, a));
+  r.stone = part(ico(0.05 * s, 1), new THREE.MeshBasicMaterial({ color: new THREE.Color(c).multiplyScalar(2.2) }), 0, -(al + ar + 0.07 * s), -0.05, r.arms[1]);
+  // gambe e scarpe
+  const ll = 0.36 * s;
   const legM = o.shorts ? skin : pants;
-  r.legs = [limb(0.13 * s, 0.56 * s, 0.13 * s, legM, -0.09 * s, 0.56 * s, 0, r.g), limb(0.13 * s, 0.56 * s, 0.13 * s, legM, 0.09 * s, 0.56 * s, 0, r.g)];
-  if (o.shorts) r.legs.forEach(l => part(box(0.15 * s, 0.22 * s, 0.15 * s), pants, 0, -0.1 * s, 0, l));
-  r.legs.forEach(l => part(box(0.14 * s, 0.08 * s, 0.2 * s), shoe, 0, -0.53 * s, -0.025, l));
-  return s;
+  r.legs = [rlimb(0.068 * s, ll, legM, -0.085 * s, 0.56 * s, 0, r.g), rlimb(0.068 * s, ll, legM, 0.085 * s, 0.56 * s, 0, r.g)];
+  if (o.shorts) r.legs.forEach(l => { const sh = part(cap(0.078 * s, 0.1 * s), pants, 0, -0.1 * s, 0, l); sh.scale.set(1.05, 1, 1.05); });
+  if (o.cargo) r.legs.forEach((l, i) => part(box(0.03, 0.09 * s, 0.07 * s), std(shade(o.pants, 0.85)), (i ? 1 : -1) * 0.07 * s, -0.22 * s, 0, l));
+  r.legs.forEach(l => { const sh = part(cap(0.06 * s, 0.1 * s), shoe, 0, -0.5 * s, -0.04 * s, l); sh.rotation.x = Math.PI / 2; sh.scale.set(1.05, 1, 0.8); const so = part(box(0.12 * s, 0.025, 0.24 * s), sole, 0, -0.545 * s, -0.04 * s, l); });
 }
 // Adulti di Marechiaro e di Luminos (non sceglibili): Tonino, le raccoglitrici del sale, l'anziana del sale.
 function adult(r, o) {
-  const cloth = lam(o.cloth), skin = lam(SKIN), hair = lam(o.hair), pants = lam(o.pants ?? o.cloth);
-  r.hip = 0.72; part(box(0.44, 0.6, 0.3), cloth, 0, 0.3, 0, r.body);
-  if (o.apron) part(box(0.34, 0.5, 0.02), lam(o.apron), 0, 0.2, -0.16, r.body);
-  if (o.robe) part(box(0.5, 0.7, 0.36), cloth, 0, -0.32, 0, r.body);
-  r.headY = 0.8; part(box(0.3, 0.32, 0.3), skin, 0, 0, 0, r.head);
-  part(box(0.33, 0.08, 0.33), hair, 0, 0.17, 0.01, r.head); part(box(0.33, 0.2, 0.07), hair, 0, 0.06, 0.14, r.head);
-  if (o.beard) part(box(0.28, 0.16, 0.06), hair, 0, -0.12, -0.15, r.head);
-  if (o.cap) { part(box(0.34, 0.1, 0.34), lam(o.cap), 0, 0.2, 0, r.head); part(box(0.3, 0.03, 0.12), lam(o.cap), 0, 0.15, -0.2, r.head); }
-  if (o.scarf) part(box(0.36, 0.14, 0.34), lam(o.scarf), 0, 0.12, 0.01, r.head);
-  if (o.long) part(box(0.34, 0.4, 0.08), hair, 0, -0.14, 0.14, r.head);
-  r.eyes = [part(box(0.04, 0.035, 0.02), flat(0x2a1d16), -0.07, 0.02, -0.155, r.head), part(box(0.04, 0.035, 0.02), flat(0x2a1d16), 0.07, 0.02, -0.155, r.head)];
-  r.arms = [limb(0.1, 0.48, 0.1, cloth, -0.27, 0.56, 0, r.body), limb(0.1, 0.48, 0.1, cloth, 0.27, 0.56, 0, r.body)];
-  r.arms.forEach(a => part(box(0.08, 0.07, 0.08), skin, 0, -0.5, 0, a));
-  if (o.basket) { const b = new THREE.Group(); b.position.set(0, -0.55, -0.18); r.arms[1].add(b); part(cyl(0.2, 0.15, 0.26, 8), lam(0xb08a52), 0, -0.1, 0, b); part(cyl(0.17, 0.17, 0.04, 8), flat(0xfff1c8), 0, 0.03, 0, b); }
-  r.legs = o.robe ? [] : [limb(0.14, 0.72, 0.14, pants, -0.11, 0.72, 0, r.g), limb(0.14, 0.72, 0.14, pants, 0.11, 0.72, 0, r.g)];
-  r.legs.forEach(l => part(box(0.15, 0.08, 0.22), lam(0x3a2e26), 0, -0.68, -0.03, l));
+  const cloth = std(o.cloth), skin = std(o.skin ?? 0xdba886), hairM = std(o.hair, { roughness: 0.7 }), pants = std(o.pants ?? o.cloth);
+  r.hip = 0.74;
+  const t = part(cap(0.19, 0.3), cloth, 0, 0.3, 0, r.body); t.scale.set(1.05, 1, 0.8);
+  if (o.apron) { const ap = part(box(0.3, 0.5, 0.02), std(o.apron), 0, 0.1, -0.16, r.body); }
+  if (o.robe) { const rb = part(G('robe', () => new THREE.CylinderGeometry(0.2, 0.32, 0.74, 14)), cloth, 0, -0.37, 0, r.body); }
+  r.headY = 0.76;
+  face(r, { hair: o.hair, iris: 0x4a3a2a, brow: o.hair }, 0.85);
+  const H = r.head;
+  const cp = part(sph(0.18, 18, 12), hairM, 0, 0.03, 0.02, H); cp.scale.set(1.04, 0.95, 1.04);
+  if (o.long) blob(H, hairM, [[0, -0.12, 0.13, 0.15, 1.1, 1.4, 0.6], [-0.15, -0.1, 0.0, 0.07, 0.8, 1.6, 1], [0.15, -0.1, 0.0, 0.07, 0.8, 1.6, 1]]);
+  if (o.bun) blob(H, hairM, [[0, 0.12, 0.17, 0.08]]);
+  if (o.beard) { blob(H, hairM, [[0, -0.1, -0.12, 0.11, 1.2, 0.9, 0.7], [-0.09, -0.04, -0.13, 0.06], [0.09, -0.04, -0.13, 0.06]]); blob(H, hairM, [[-0.05, -0.04, -0.17, 0.035, 1.3, 0.6, 0.6], [0.05, -0.04, -0.17, 0.035, 1.3, 0.6, 0.6]]); }
+  if (o.cap) { const cm = std(o.cap); const c1 = part(sph(0.185, 16, 10, 0), cm, 0, 0.07, 0.01, H); c1.scale.set(1.05, 0.6, 1.05); part(box(0.2, 0.02, 0.12), cm, 0, 0.06, -0.2, H); }
+  if (o.scarf) { const sc = part(sph(0.2, 16, 12), std(o.scarf), 0, 0.05, 0.03, H); sc.scale.set(1.08, 0.95, 1.1); }
+  r.arms = [rlimb(0.06, 0.34, cloth, -0.24, 0.48, 0, r.body), rlimb(0.06, 0.34, cloth, 0.24, 0.48, 0, r.body)];
+  r.arms.forEach(a => part(sph(0.055, 10, 8), skin, 0, -0.46, 0, a));
+  if (o.basket) { const b = new THREE.Group(); b.position.set(0, -0.5, -0.16); r.arms[1].add(b); part(cyl(0.2, 0.15, 0.24, 12), std(0xb08a52), 0, -0.1, 0, b); part(cyl(0.18, 0.18, 0.04, 12), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xfff1c8).multiplyScalar(1.6) }), 0, 0.03, 0, b); }
+  r.legs = o.robe ? [] : [rlimb(0.075, 0.52, pants, -0.1, 0.74, 0, r.g), rlimb(0.075, 0.52, pants, 0.1, 0.74, 0, r.g)];
+  r.legs.forEach(l => { const sh = part(cap(0.065, 0.12), std(0x3a2e26), 0, -0.68, -0.05, l); sh.rotation.x = Math.PI / 2; });
 }
 const BUILDERS = {
-  marco(c, r) { kid(c, r, { top: 0x2f4f9a, sleeve: 0x2b4890, inner: 0x8a8f96, big: true, hood: true, pants: 0x6a5a44, hair: 0x3a2618, messy: true, pack: 0x3a2e26 }); },
-  sophia(c, r) { kid(c, r, { top: 0xd8d6d0, pants: 0x5a7a9e, shorts: true, hair: 0x2a1c16, tail: true, pack: 0x3a3430 }); },
+  marco(c, r) { kid(c, r, { top: 0x26489a, sleeve: 0x22418c, inner: 0x7a838c, big: true, hood: true, pants: 0x6a5a44, cargo: true, hair: 0x3d2414, brow: 0x2a1a10, style: 'messy', pack: 0x2e2620, pack2: 0x4a3a2c }); },
+  sophia(c, r) { kid(c, r, { top: 0xe8e4dc, short: true, pants: 0x5a7aa6, shorts: true, hair: 0x2a1a14, style: 'tail', pack: 0x2e2a28, pack2: 0x4a4038, shoe: 0x5a4a3a }); },
   giulia(c, r) {
-    kid(c, r, { top: 0xbcb6ac, pants: 0x5a7090, hair: 0x9a6a3e, long: true, glasses: true, pack: 0x7a6a58 });
-    const nb = part(box(0.15, 0.2, 0.035), lam(0x6a4224), 0, -0.36, -0.08, r.arms[0]); nb.rotation.x = -0.3;
-    part(box(0.07, 0.07, 0.01), flat(0xd8b26a), 0, -0.36, -0.1, r.arms[0]);
+    kid(c, r, { top: 0xcfc8bc, pants: 0x5a7090, hair: 0x9a6a3c, brow: 0x6a4424, style: 'long', glasses: true, pack: 0x8a7a64, pack2: 0x6a5a48, iris: 0x6a4a2a });
+    const nb = new THREE.Group(); nb.position.set(0, -0.3, -0.07); r.arms[0].add(nb); nb.rotation.x = -0.3;
+    part(box(0.15, 0.2, 0.035), std(0x6a3e20), 0, 0, 0, nb); part(G('rosa', () => new THREE.TorusGeometry(0.035, 0.005, 4, 16)), new THREE.MeshBasicMaterial({ color: 0xd8b26a }), 0, 0, -0.02, nb);
   },
-  luca(c, r) { kid(c, r, { s: 0.86, top: 0x4f6e46, pants: 0x4a5a72, hair: 0x7a4e2c, curls: true, hood: true, pack: 0x5a4636 }); },
-  tonino(c, r) { adult(r, { cloth: 0x4a5a6a, pants: 0x3a3a40, hair: 0xd8d4cc, beard: true, cap: 0x2a3a5a }); },
-  raccoglitrice(c, r) { adult(r, { cloth: 0xe8e2d4, apron: 0xc8bfa8, hair: 0x6a4a30, scarf: 0xd8c8a8, robe: true, basket: true }); },
-  anziana(c, r) { adult(r, { cloth: 0xdcd4c4, apron: 0xb8ad94, hair: 0xe0dcd4, long: true, robe: true, basket: true }); },
+  luca(c, r) { kid(c, r, { s: 0.86, top: 0x56704a, pants: 0x4a5a78, hair: 0x7a4a26, brow: 0x5a3418, style: 'curls', hood: true, strings: true, pack: 0x5a4636, pack2: 0x3e3026 }); },
+  tonino(c, r) { adult(r, { cloth: 0x46586a, pants: 0x34343c, hair: 0xd8d4cc, beard: true, cap: 0x23365a }); },
+  raccoglitrice(c, r) { adult(r, { cloth: 0xece6d8, apron: 0xc8bfa8, hair: 0x6a4a30, scarf: 0x8aa6c8, robe: true, basket: true }); },
+  anziana(c, r) { adult(r, { cloth: 0xe0d8c8, apron: 0xb8ad94, hair: 0xe8e4dc, long: true, bun: true, robe: true, basket: true }); },
 };
 
 function makeSprite(canvas, h) {
@@ -119,7 +165,7 @@ export function makeBubble(text, opts = {}) {
   g.font = font;
   const words = String(text).split(' '); const lines = []; let line = '';
   for (const w of words) { const t = line ? line + ' ' + w : w; if (g.measureText(t).width > W - 48 && line) { lines.push(line); line = w; } else line = t; }
-  lines.push(line); if (lines.length > 3) { lines.length = 3; lines[2] = lines[2].replace(/\s*\S*$/, '') + '…'; }
+  lines.push(line); const ML = opts.maxLines || 3; if (lines.length > ML) { lines.length = ML; lines[ML - 1] = lines[ML - 1].replace(/\s*\S*$/, '') + '…'; }
   const tw = Math.min(W - 48, Math.max(...lines.map(l => g.measureText(l).width)));
   c.width = Math.ceil(tw + 48); c.height = 30 + lines.length * 38 + 26;
   g.font = font;

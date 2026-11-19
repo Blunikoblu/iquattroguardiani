@@ -7,10 +7,10 @@
 // Si vede solo la regione in cui ti trovi (più leggero sui telefoni).
 // I pannelli sono costruiti con h() (DOM + textContent): niente innerHTML.
 import * as THREE from 'three';
-import { AVATARS } from './config.js?v=202611182305';
-import { h, wrapText } from './util.js?v=202611182305';
-import { Avatar } from './avatars.js?v=202611182305';
-import { drawRune } from './secrets.js?v=202611182305';
+import { AVATARS } from './config.js?v=202611191110';
+import { h, wrapText } from './util.js?v=202611191110';
+import { Avatar } from './avatars.js?v=202611191110';
+import { drawRune } from './secrets.js?v=202611191110';
 
 const GOLD = 0xf5c56b;
 let seed = 11;
@@ -63,7 +63,7 @@ export function tideState(now = Date.now()) { const t = now / 1000 % 240; return
 export function buildWorld(scene, data, hooks) {
   const mats = new Map();
   const lam = (c, o = {}) => { const k = c + JSON.stringify(o); if (!mats.has(k)) mats.set(k, new THREE.MeshLambertMaterial({ color: c, flatShading: true, ...o })); return mats.get(k); };
-  const glow = (c, o = {}) => new THREE.MeshBasicMaterial({ color: c, ...o });
+  const glow = (c, o = {}) => { const { k = 3.3, ...rest } = o; const m = new THREE.MeshBasicMaterial({ color: c, ...rest }); m.color.multiplyScalar(k); return m; };
   const mesh = (geo, mat, x, y, z, parent) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); parent.add(m); return m; };
   const box = (w, hh, d, c, x, y, z, parent) => mesh(new THREE.BoxGeometry(w, hh, d), typeof c === 'number' ? lam(c) : c, x, y, z, parent);
   function canvasTex(w, hh, draw) {
@@ -107,9 +107,12 @@ export function buildWorld(scene, data, hooks) {
     const av = new Avatar(kind, '#ffffff', null);
     av.g.position.set(x, opts.y || 0, z); av.g.rotation.y = yaw; opts.parent.add(av.g);
     if (opts.seated) av.setSeated(true);
+    av.lines = opts.lines || null; av.nextSay = 0;
     npcs.push(av); return av;
   }
-  animated.push((t, dt) => { for (const a of npcs) if (a.g.parent?.visible) a.update(dt, 0, t); });
+  // chi passa vicino riceve il saluto (solo frasi del libro approvate da Nicola)
+  animated.push((t, dt, ctx) => { for (const a of npcs) { if (!a.g.parent?.visible) continue; a.update(dt, 0, t);
+    if (a.lines && ctx?.me && t > a.nextSay && Math.hypot(a.g.position.x - ctx.me.x, a.g.position.z - ctx.me.z) < 3.2) { a.say(a.lines[Math.floor(Math.random() * a.lines.length)], 6500, { maxLines: 5 }); a.nextSay = t + 45; } } });
 
   const gM = new THREE.Group(), gG = new THREE.Group(), gL = new THREE.Group();
   scene.add(gM, gG, gL);
@@ -118,7 +121,7 @@ export function buildWorld(scene, data, hooks) {
   // M · MARECHIARO, ad agosto
   // =====================================================================
   gM.add(new THREE.HemisphereLight(0xcfe6ff, 0x9a8a70, 1.5));
-  const sun = new THREE.DirectionalLight(0xfff0d8, 1.6); sun.position.set(40, 60, 30); gM.add(sun);
+  const sun = new THREE.DirectionalLight(0xfff0d8, 1.7); sun.position.set(22, 40, -60); gM.add(sun);
   // cielo d'estate
   {
     const geo = new THREE.SphereGeometry(300, 24, 12), col = new Float32Array(geo.attributes.position.count * 3), top = new THREE.Color(0x3f86d8), hor = new THREE.Color(0xd6ecff), c = new THREE.Color();
@@ -131,10 +134,10 @@ export function buildWorld(scene, data, hooks) {
   }
   // il mare (onde sui vertici, ombreggiatura piatta)
   const seaGeo = new THREE.PlaneGeometry(700, 360, 70, 36); seaGeo.rotateX(-Math.PI / 2);
-  mesh(seaGeo, new THREE.MeshLambertMaterial({ color: 0x1f7ab8, emissive: 0x0a3050, flatShading: true }), 100, -0.45, -60, gM);
+  const sea = mesh(seaGeo, new THREE.MeshLambertMaterial({ color: 0x1f7ab8, emissive: 0x0a3050, flatShading: true }), 100, -0.45, -60, gM); sea.userData.noShadow = true;
   const seaP = seaGeo.attributes.position, seaBase = Float32Array.from(seaP.array); let seaAcc = 0;
   animated.push((t, dt) => {
-    if (!gM.visible) return; seaAcc += dt; if (seaAcc < 1 / 25) return; seaAcc = 0;
+    if (!gM.visible || !sea.visible) return; seaAcc += dt; if (seaAcc < 1 / 25) return; seaAcc = 0;
     for (let i = 0; i < seaP.count; i++) { const x = seaBase[i * 3], z = seaBase[i * 3 + 2]; seaP.array[i * 3 + 1] = Math.sin(x * 0.12 + t * 1.1) * 0.12 + Math.cos(z * 0.1 + t * 0.8) * 0.12; }
     seaP.needsUpdate = true;
   });
@@ -145,19 +148,97 @@ export function buildWorld(scene, data, hooks) {
   const hillMat = lam(0x9a8f62);
   for (let i = 0; i < 9; i++) { const zz = 21 + i * 4, yy = i * 2.2; box(110 - i * 7, yy + 2.2, 4.2, i % 2 ? hillMat : lam(0x8a8358), 0, (yy + 2.2) / 2 - 1, zz, gM); }
   // case bianche con le persiane verdi
+  const houses = [];
   const white = lam(0xf4f0e6), roof = lam(0xc9774a), shutter = lam(0x3f7a52), shutterOpen = lam(0x2f5a3c), win = lam(0x3a4658);
   for (let i = 0; i < 8; i++) {
     const zz = 22 + i * 4, yy = i * 2.2 + 1.2, span = 50 - i * 3.2;
     for (let x = -span; x < span; x += srnd(5, 8)) {
       if (i === 0 && Math.abs(x) < 13) continue;
       const w = srnd(3.4, 5), hh = srnd(3.2, 5.2), d = 3.4;
-      box(w, hh, d, white, x, yy + hh / 2, zz, gM);
+      box(w, hh, d, white, x, yy + hh / 2, zz, gM); houses.push({ x, w, hh, yy, zz, d });
       if (srnd(0, 1) < 0.5) box(w + 0.2, 0.25, d + 0.2, roof, x, yy + hh + 0.12, zz, gM);
       for (let fx = x - w / 2 + 0.9; fx < x + w / 2 - 0.6; fx += 1.5) { const fy = yy + hh * 0.62; box(0.55, 0.8, 0.05, win, fx, fy, zz - d / 2 - 0.02, gM); box(0.28, 0.82, 0.06, shutter, fx - 0.42, fy, zz - d / 2 - 0.03, gM); box(0.28, 0.82, 0.06, shutterOpen, fx + 0.42, fy, zz - d / 2 - 0.03, gM); }
     }
   }
   // l'ultima casa in cima alla collina, con le persiane verdi accostate
   box(5, 4.6, 3.6, white, 6, 8 * 2.2 + 1.2 + 2.3, 22 + 8 * 4, gM); box(0.9, 1.1, 0.06, shutter, 6, 8 * 2.2 + 1.2 + 3, 22 + 8 * 4 - 1.83, gM);
+
+  // ---- Marechiaro più viva: buganvillee, gerani, pini marittimi, campanile, faraglioni, gatti del porto, vele, delfini ----
+  {
+    const bug = [lam(0xc8287a), lam(0xe0449a), lam(0xa8206a)], leafD = lam(0x3f6a34), pot = lam(0xb5603a), ger = [lam(0xd8303a), lam(0xf06a8a), lam(0xffffff)];
+    const pineCrown = lam(0x355a2e), pineCrown2 = lam(0x2c4e28), bark = lam(0x6a4a34);
+    const blobGeo = new THREE.IcosahedronGeometry(1, 1);
+    const ball = (mat, x, y, z, r, parent = gM) => { const m = mesh(blobGeo, mat, x, y, z, parent); m.scale.setScalar(r); return m; };
+    // buganvillee che ricadono dalle facciate
+    let bi = 0;
+    for (const hs of houses) { if (srnd(0, 1) > 0.32) continue; const side = srnd(0, 1) < 0.5 ? -1 : 1, fx = hs.x + side * (hs.w / 2 - 0.35), fz = hs.zz - hs.d / 2 - 0.25;
+      for (let k = 0; k < 7; k++) ball(k < 2 ? leafD : bug[(bi + k) % 3], fx + srnd(-0.5, 0.5), hs.yy + hs.hh * srnd(0.35, 1.02), fz + srnd(-0.15, 0.1), srnd(0.28, 0.5)); bi++; }
+    // vasi di gerani lungo il bordo della banchina e davanti al forno
+    for (const [x, z] of [[-11.4, 18.9], [-10.6, 18.9], [-5.6, 18.95], [-4.8, 18.95], [2.5, 18.9], [3.3, 18.9], [10.6, 18.9], [11.4, 18.9], [-11.6, 12.4], [11.6, 12.4]]) {
+      mesh(new THREE.CylinderGeometry(0.24, 0.17, 0.4, 8), pot, x, 0.2, z, gM);
+      for (let k = 0; k < 4; k++) ball(k ? ger[(Math.abs(x * 3) + k) % 3 | 0] : leafD, x + srnd(-0.12, 0.12), 0.48 + srnd(0, 0.12), z + srnd(-0.12, 0.12), k ? 0.09 : 0.2);
+      if (Math.abs(z - 12.4) < 0.1) solidR(x, z, 0.3);
+    }
+    // pini marittimi sui fianchi della collina
+    const pine = (x, y, z, s) => { const t = mesh(new THREE.CylinderGeometry(0.16 * s, 0.24 * s, 5 * s, 6), bark, x, y + 2.5 * s, z, gM); t.rotation.z = srnd(-0.2, 0.2);
+      const top = y + 5 * s; for (let k = 0; k < 4; k++) { const c = ball(k % 2 ? pineCrown : pineCrown2, x + srnd(-1.3, 1.3) * s + Math.sin(t.rotation.z) * -2.5 * s, top + srnd(-0.2, 0.5) * s, z + srnd(-1, 1) * s, 1.5 * s); c.scale.y = 0.55 * s; } };
+    for (let i = 0; i < 9; i++) { const zz = 21 + i * 4, yy = i * 2.2 + 1.1; for (const side of [-1, 1]) if (srnd(0, 1) < 0.75) pine(side * srnd(48 - i * 3.6, 56 - i * 3.6), yy, zz + srnd(-1, 1), srnd(0.8, 1.2)); }
+    pine(-24, 0, 26.5, 1.1); pine(30, 2.2, 25, 0.9);
+    // il campanile della chiesa, a metà collina
+    { const cx = -15, cy = 6 * 2.2 + 1.2, cz = 46.5, ochre = lam(0xe8d2a4);
+      box(7, 6, 5, white, cx + 4.5, cy + 3, cz + 0.5, gM); box(7.4, 0.4, 5.4, roof, cx + 4.5, cy + 6.1, cz + 0.5, gM);
+      mesh(new THREE.ConeGeometry(4.6, 2, 4).rotateY(Math.PI / 4), roof, cx + 4.5, cy + 7.3, cz + 0.5, gM).scale.set(1.08, 1, 0.78);
+      mesh(new THREE.CircleGeometry(0.8, 16), lam(0x3a4658), cx + 4.5, cy + 4.3, cz - 2.02, gM).rotation.y = Math.PI;
+      box(2.6, 12, 2.6, ochre, cx, cy + 6, cz, gM);
+      for (const [dx, dz, ry] of [[0, -1.32, 0], [1.32, 0, Math.PI / 2], [-1.32, 0, Math.PI / 2], [0, 1.32, 0]]) { const o = box(0.9, 1.5, 0.06, lam(0x2a2620), cx + dx, cy + 10.4, cz + dz, gM); o.rotation.y = ry; }
+      mesh(new THREE.ConeGeometry(0.4, 0.55, 10), lam(0x9a7a3a), cx, cy + 10.25, cz, gM);
+      box(3, 0.3, 3, ochre, cx, cy + 12.1, cz, gM); mesh(new THREE.ConeGeometry(1.9, 2.6, 4).rotateY(Math.PI / 4), roof, cx, cy + 13.5, cz, gM);
+      mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.2, 4), lam(0x3a3a3a), cx, cy + 15.3, cz, gM);
+      const clock = canvasTex(64, 64, g => { g.fillStyle = '#fbf6ea'; g.beginPath(); g.arc(32, 32, 30, 0, 7); g.fill(); g.strokeStyle = '#3a3026'; g.lineWidth = 3; g.stroke(); g.beginPath(); g.moveTo(32, 32); g.lineTo(32, 12); g.moveTo(32, 32); g.lineTo(46, 36); g.stroke(); });
+      sign(1.1, 1.1, clock, cx, cy + 8.3, cz - 1.32, Math.PI, gM).rotation.y = 0; }
+    // faraglioni al largo
+    const rockM = lam(0x9a8c74), rockD = lam(0x7e715c);
+    for (const [x, z, hgt, r] of [[-34, -34, 15, 4], [-27, -40, 10, 3], [-40, -44, 7, 2.6], [46, -58, 12, 3.6]]) {
+      const g = new THREE.Group(); g.position.set(x, -1, z); gM.add(g);
+      for (let k = 0; k < 4; k++) { const m = mesh(new THREE.DodecahedronGeometry(r * (1 - k * 0.18), 0), k % 2 ? rockD : rockM, srnd(-0.6, 0.6), hgt * (0.15 + k * 0.24), srnd(-0.6, 0.6), g); m.scale.y = 1.4; }
+      ball(leafD, 0, hgt * 0.95 + r * 0.5, 0, r * 0.45, g).scale.y = r * 0.18;
+    }
+    // lampioni sulla banchina
+    for (const x of [-10.8, 10.8]) { mesh(new THREE.CylinderGeometry(0.06, 0.09, 3.2, 6), lam(0x2a2e34), x, 1.6, 12.6, gM); box(0.36, 0.42, 0.36, lam(0x2a2e34), x, 3.35, 12.6, gM); box(0.28, 0.3, 0.28, glow(0xfff0c0, { k: 1.4 }), x, 3.33, 12.6, gM); solidR(x, 12.6, 0.2); }
+    // ombrelloni e tavolini davanti al forno
+    for (const [x, z, c] of [[-11, 16.2, 0xe8e2d0], [-3.6, 17.4, 0x3f7a8a]]) {
+      mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.3, 5), lam(0x6a5a4a), x, 1.15, z, gM);
+      mesh(new THREE.ConeGeometry(1.4, 0.5, 8, 1, true), new THREE.MeshLambertMaterial({ color: c, side: THREE.DoubleSide, flatShading: true }), x, 2.35, z, gM);
+      mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.05, 12), lam(0xf4f0e6), x, 0.75, z, gM); mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.72, 5), lam(0x3a3a3a), x, 0.37, z, gM);
+      for (const a of [0.4, 2.6]) { const cx = x + Math.cos(a) * 0.8, cz = z + Math.sin(a) * 0.8; box(0.38, 0.05, 0.38, 0x8a5a3a, cx, 0.46, cz, gM); box(0.38, 0.4, 0.05, 0x8a5a3a, cx + Math.cos(a) * 0.18, 0.66, cz + Math.sin(a) * 0.18, gM).rotation.y = -a + Math.PI / 2; }
+      solidR(x, z, 1.05);
+    }
+    // gatti del porto che dormono al sole
+    const cats = [];
+    const cat = (x, y, z, ry, col, col2, parent = gM) => { const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; parent.add(g); const m = lam(col), m2 = lam(col2);
+      const b = ball(m, 0, 0.12, 0, 0.2, g); b.scale.set(0.24, 0.13, 0.17); const hd = ball(m, 0.17, 0.11, 0.08, 0.1, g);
+      for (const s of [-1, 1]) { const e = mesh(new THREE.ConeGeometry(0.035, 0.07, 4), m2, 0.19 + s * 0.04, 0.2, 0.08, g); e.rotation.z = -s * 0.3; }
+      const tl = mesh(new THREE.TorusGeometry(0.17, 0.03, 5, 12, Math.PI * 1.2), m2, 0, 0.05, 0, g); tl.rotation.x = Math.PI / 2;
+      cats.push({ b, s: srnd(0, 6) }); return g; };
+    cat(-4.1, 0, 13.15, 0.4, 0xd8893a, 0xb86a2a); cat(13.2, 0.0, 18.8, 2.2, 0x2a2a2e, 0x1a1a1e); cat(-12.4, 0.0, 15.3, -1, 0xeeeae2, 0x9a9590);
+    solidR(-4.1, 13.15, 0.3); solidR(-12.4, 15.3, 0.3);
+    animated.push(t => { if (!gM.visible) return; for (const c of cats) c.b.scale.y = 0.13 + Math.sin(t * 1.4 + c.s) * 0.008; });
+    // vele al largo
+    const sails = [];
+    for (let i = 0; i < 3; i++) { const g = new THREE.Group(); gM.add(g); box(1.2, 0.5, 4, 0xf4f0e6, 0, 0, 0, g);
+      const sg = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute([0, 0.3, -1.4, 0, 6, 0.6, 0, 0.3, 1.6], 3)); sg.computeVertexNormals();
+      mesh(sg, new THREE.MeshLambertMaterial({ color: i === 1 ? 0xf2d27a : 0xffffff, side: THREE.DoubleSide }), 0, 0, 0, g); g.userData = { z: -60 - i * 22, v: 0.6 + i * 0.25, o: i * 70 }; sails.push(g); }
+    animated.push(t => { if (!gM.visible) return; for (const g of sails) { const u = g.userData, x = -90 + ((t * u.v + u.o) % 200); g.position.set(x, -0.1, u.z); g.rotation.set(0, Math.PI / 2, Math.sin(t * 0.8 + u.o) * 0.04); } });
+    // un branco di tursiopi che salta al largo, ogni tanto
+    const pod = [];
+    for (let i = 0; i < 3; i++) { const d = new THREE.Group(); gM.add(d); const dm = lam(0x8fa4b8);
+      ball(dm, 0, 0, 0, 1, d).scale.set(0.24, 0.22, 0.75); const sn = ball(dm, 0, -0.02, -0.75, 1, d); sn.scale.set(0.07, 0.06, 0.16);
+      const f = mesh(new THREE.ConeGeometry(0.07, 0.24, 4), lam(0x7a8ea4), 0, 0.22, 0.05, d); f.rotation.x = -0.5; f.scale.z = 0.35;
+      const tl = box(0.5, 0.03, 0.14, 0x7a8ea4, 0, 0, 0.8, d); d.visible = false; pod.push(d); }
+    animated.push(t => { if (!gM.visible) return; const P = 13, cyc = Math.floor(t / P), u = t / P - cyc, bx = 22 + (cyc % 4) * 9, bz = -26 - (cyc % 3) * 7;
+      pod.forEach((d, i) => { const k = (u - i * 0.07) * 5; if (k < 0 || k > 1) { d.visible = false; return; } d.visible = true;
+        d.position.set(bx + i * 1.6 + k * 6, -0.4 + Math.sin(k * Math.PI) * 1.6, bz + i * 0.9); d.rotation.order = 'YXZ'; d.rotation.set(Math.cos(k * Math.PI) * 0.9, -Math.PI / 2, 0); }); });
+  }
   // il faro di Marechiaro, sul promontorio
   box(16, 3, 14, 0x8a7d62, -46, 0.5, -6, gM); mesh(new THREE.CylinderGeometry(1.1, 1.5, 11, 10), lam(0xf4f0e6), -46, 7.5, -6, gM);
   for (let y = 4; y < 12; y += 3) mesh(new THREE.CylinderGeometry(1.2, 1.25, 0.9, 10), lam(0xc0443a), -46, y, -6, gM);
@@ -194,7 +275,7 @@ export function buildWorld(scene, data, hooks) {
 
   // Tonino, che rammenda le reti seduto su una cassa
   box(0.7, 0.45, 0.6, 0x7a5a3a, -2.9, 0.22, 13.4, gM); solid(-2.9, 13.4, 1.6, 1.4);
-  npc('tonino', -2.9, 13.4, Math.PI * 0.85, { parent: gM, seated: true });
+  npc('tonino', -2.9, 13.4, Math.PI * 0.85, { parent: gM, seated: true, lines: ['«Buona marea.»', '♪ … ♪'] });
   const tNet = mesh(new THREE.IcosahedronGeometry(0.6, 1), lam(0x8a9a7a), -2.3, 0.15, 12.8, gM); tNet.scale.set(1.3, 0.3, 1);
   add({ id: 'tonino', name: 'Il vecchio Tonino', pos: [-2.9, 0.9, 13.4], radius: 2.3, markerY: 2.3, desc: 'Rammenda le reti al sole.',
     open: () => [h('h2', {}, 'Il vecchio Tonino'),
@@ -249,8 +330,23 @@ export function buildWorld(scene, data, hooks) {
   // =====================================================================
   const GX = 200;
   gG.add(new THREE.HemisphereLight(0x8fb0e8, 0x1a1a2a, 0.55));
+  // fuori: il sole di agosto sulla scogliera, il mare e il cielo (dentro la grotta il sole non arriva)
+  { const sunG = new THREE.DirectionalLight(0xfff0d8, 2.2); sunG.position.set(GX + 30, 40, 70); sunG.target.position.set(GX, 0, 12); gG.add(sunG, sunG.target);
+    const fillG = new THREE.HemisphereLight(0xcfe6ff, 0x6a5a48, 0.9); fillG.position.set(GX, 30, 40); gG.add(fillG);
+    const seaG = mesh(new THREE.PlaneGeometry(320, 140, 40, 14).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: 0x1f7ab8, emissive: 0x0a3050, flatShading: true }), GX, -0.4, 86, gG); seaG.userData.noShadow = true;
+    const sp = seaG.geometry.attributes.position, sb = Float32Array.from(sp.array); let acc = 0;
+    animated.push((t, dt) => { if (!gG.visible) return; acc += dt; if (acc < 1 / 20) return; acc = 0; for (let i = 0; i < sp.count; i++) sp.array[i * 3 + 1] = Math.sin(sb[i * 3] * 0.12 + t * 1.1) * 0.12 + Math.cos(sb[i * 3 + 2] * 0.1 + t * 0.8) * 0.12; sp.needsUpdate = true; });
+    const geo = new THREE.SphereGeometry(260, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), col = new Float32Array(geo.attributes.position.count * 3), top = new THREE.Color(0x3f86d8), hor = new THREE.Color(0xd6ecff), c = new THREE.Color();
+    for (let i = 0; i < geo.attributes.position.count; i++) { c.copy(hor).lerp(top, Math.min(1, geo.attributes.position.getY(i) / 260 * 2.2)); c.toArray(col, i * 3); }
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const skyG = mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false }), GX, 0, 40, gG); skyG.renderOrder = -1;
+    // la costa che continua, con il promontorio a nord
+    for (const [x, z, w, hh] of [[-70, 30, 50, 22], [70, 24, 60, 18], [-110, 60, 40, 30]]) box(w, hh, 14, lam(0x6e665e), GX + x, hh / 2 - 2, z, gG);
+    // dentro la grotta il sole e il cielo non arrivano
+    animated.push((t, dt, ctx) => { if (!gG.visible || !ctx?.me) return; const out = ctx.me.z > 14.2; sunG.intensity = out ? 2.2 : 0; fillG.intensity = out ? 0.9 : 0; skyG.visible = seaG.visible = out; });
+  }
   // scogliera esterna, con l'apertura bassa e nera
-  const cliff = lam(0x6e665e), cliffDark = lam(0x4e4842);
+  const cliff = lam(0x7a7066), cliffDark = lam(0x655c52);
   box(38.6, 26, 10, cliff, GX - 20.7, 12, 10, gG); box(38.6, 26, 10, cliff, GX + 20.7, 12, 10, gG); box(2.8, 22.6, 10, cliff, GX, 13.7, 10, gG); // la parete, con l'apertura bassa
   box(24, 3, 8, cliffDark, GX, -1, 19, gG); // lo scoglio dell'approdo
   for (let i = 0; i < 18; i++) { const r = mesh(new THREE.DodecahedronGeometry(srnd(0.8, 2), 0), cliffDark, GX + srnd(-12, 12), srnd(-0.3, 0.6), 22.5 + srnd(0, 3), gG); r.scale.y = 0.6; }
@@ -265,7 +361,7 @@ export function buildWorld(scene, data, hooks) {
   for (let z = 4.5; z < 16; z += 0.7) for (const sx of [-1, 1]) if (srnd(0, 1) < 0.7) { const y = srnd(0.2, 2.2); box(0.02, srnd(0.08, 0.2), srnd(0.2, 0.5), y < 0.7 ? lam(0x2f4a34) : salt, GX + sx * 1.29, y, z, gG); }
   // le rune azzurre sulla parete del tunnel
   const runeWallTex = canvasTex(512, 128, (g) => { g.clearRect(0, 0, 512, 128); const s = ['vento', 'roccia', 'acqua', 'luce', 'roccia', 'vento', 'acqua']; s.forEach((r, i) => drawRune(g, r, 12 + i * 72, 24, 64, '#7fd4ff', 6)); });
-  const runeWall = sign(2.2, 0.55, runeWallTex, GX + 1.27, 1.5, 10.2, -Math.PI / 2, gG); runeWall.material.blending = THREE.AdditiveBlending;
+  const runeWall = sign(2.2, 0.55, runeWallTex, GX + 1.27, 1.5, 10.2, -Math.PI / 2, gG); runeWall.material.blending = THREE.AdditiveBlending; runeWall.material.color.setScalar(4.5);
   const runeLight = new THREE.PointLight(0x6fc8ff, 3, 5, 1.6); runeLight.position.set(GX + 0.6, 1.5, 10.2); gG.add(runeLight);
   animated.push(t => { if (!gG.visible) return; const k = 0.6 + Math.sin(t * 1.8) * 0.4; runeWall.material.opacity = 0.5 + k * 0.5; runeLight.intensity = 1.5 + k * 2.5; });
   add({ id: 's-rune', name: 'Una fila di segni', pos: [GX + 1.1, 1.3, 10.2], radius: 1.8, secret: 'rune-grotta', markerY: 2.2, desc: 'Le rune azzurre.',
@@ -292,6 +388,20 @@ export function buildWorld(scene, data, hooks) {
     const sparks = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xe8f4ff, size: 0.12, transparent: true, opacity: 0.9 })); gG.add(sparks);
     animated.push(t => { if (gG.visible) sparks.material.opacity = 0.65 + Math.sin(t * 2.3) * 0.25; });
   }
+  // la volta, così alta che le torce non ci arrivano, con le stalattiti di sale
+  { const dome = mesh(new THREE.CylinderGeometry(4, 18.5, 9, 28, 1, true), new THREE.MeshLambertMaterial({ color: 0x23232e, side: THREE.BackSide, flatShading: true }), GX, 15.5, CZ, gG); dome.userData.noShadow = true;
+    const stM = new THREE.MeshLambertMaterial({ color: 0xaec4d8, emissive: 0x1a2a3a, flatShading: true });
+    for (let i = 0; i < 70; i++) { const a = srnd(0, 6.28), r = srnd(5, 16), y = 11 + (16 - r) * 0.35 + 0.5, l = srnd(0.8, 3.2); const st = mesh(new THREE.ConeGeometry(srnd(0.12, 0.35), l, 5), stM, GX + Math.cos(a) * r, y - l / 2, CZ + Math.sin(a) * r * 0.95, gG); st.rotation.x = Math.PI; }
+    // grandi grappoli di cristalli che brillano di luce propria
+    const crG = new THREE.OctahedronGeometry(1, 0), crM = [new THREE.MeshStandardMaterial({ color: 0xd8ecff, emissive: 0x7fc8ff, emissiveIntensity: 1.6, roughness: 0.2, flatShading: true }), new THREE.MeshStandardMaterial({ color: 0xeef6ff, emissive: 0xbfe4ff, emissiveIntensity: 3.6, roughness: 0.2, flatShading: true })];
+    for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2 + srnd(-0.12, 0.12), r = srnd(13.6, 14.6), x = GX + Math.cos(a) * r, z = CZ + Math.sin(a) * r * 0.95; if (Math.abs(x - GX) < 3.5 && z > CZ + 10) continue;
+      const g = new THREE.Group(); g.position.set(x, 0, z); gG.add(g);
+      for (let k = 0; k < 6; k++) { const hh = srnd(0.8, 2.6) * (k ? 1 : 1.5), m = mesh(crG, crM[k === 0 && i % 3 === 0 ? 1 : 0], srnd(-0.6, 0.6), hh * 0.5, srnd(-0.6, 0.6), g); m.scale.set(srnd(0.18, 0.3), hh * 0.55, srnd(0.18, 0.3)); m.rotation.set(srnd(-0.45, 0.45), srnd(0, 3), srnd(-0.45, 0.45)); }
+      solidR(x, z, 1.1); }
+    // il lago è così limpido che si possono contare i sassi sul fondo
+    const pebG = new THREE.IcosahedronGeometry(1, 0), pebM = [lam(0x8a8f9a), lam(0x6a707c), lam(0xb0b4bc), lam(0x9a8a78)];
+    for (let i = 0; i < 160; i++) { const a = rnd(0, 6.28), r = Math.sqrt(rnd(0, 1)) * 10.6; const m = mesh(pebG, pebM[i % 4], GX + Math.cos(a) * r, -0.02, CZ + Math.sin(a) * r, gG); m.scale.set(rnd(0.08, 0.22), 0.05, rnd(0.08, 0.2)); m.rotation.y = rnd(0, 3); }
+  }
   add({ id: 's-sale', name: 'La parete che brilla', pos: [GX - 12.4, 1.4, CZ + 4], radius: 2.2, secret: 'sale', markerY: 2.4, desc: 'Sale che brilla di luce propria.',
     open: () => [h('h2', {}, 'Il lago di cristallo'), h('p', {}, 'Le pareti brillano: migliaia di piccoli cristalli, come il mare di notte quando ci passa sopra una lampara. Il soffitto è così alto che le torce non ci arrivano.'),
       h('p', {}, 'Giulia sfiora la parete e, per abitudine, si porta la punta del dito alla lingua, come fa con gli scogli.'), h('p', { class: 'quote' }, '«È sale. Sale che brilla di luce propria.»')] });
@@ -312,7 +422,7 @@ export function buildWorld(scene, data, hooks) {
   AVATARS.forEach((a, i) => {
     const ang = -Math.PI / 2 + i * Math.PI / 2, x = GX + Math.cos(ang) * 1.15, z = CZ + Math.sin(ang) * 1.15;
     const col = new THREE.Color(a.col);
-    const st = mesh(new THREE.IcosahedronGeometry(0.26, 1), new THREE.MeshLambertMaterial({ color: col, emissive: col.clone().multiplyScalar(0.55), transparent: true, opacity: 0.92, flatShading: true }), x, 0.6, z, gG); st.scale.y = 1.3;
+    const st = mesh(new THREE.IcosahedronGeometry(0.26, 1), new THREE.MeshLambertMaterial({ color: col, emissive: col, emissiveIntensity: 3.6, transparent: true, opacity: 0.92, flatShading: true }), x, 0.6, z, gG); st.scale.y = 1.3;
     const sym = canvasTex(128, 128, (g) => { g.clearRect(0, 0, 128, 128); g.strokeStyle = 'rgba(255,255,255,.95)'; g.lineWidth = 7; g.lineCap = 'round'; stoneTex[a.id](g); });
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: sym, transparent: true, depthWrite: false })); sp.scale.set(0.3, 0.3, 1); sp.position.set(x, 0.62, z); gG.add(sp);
     const hl = halo(a.col, 1.2, x, 0.6, z, gG, 0.55);
@@ -387,7 +497,7 @@ export function buildWorld(scene, data, hooks) {
   const stars = new THREE.Points(starG, new THREE.PointsMaterial({ color: 0xffffff, size: 1.1, fog: false, transparent: true, opacity: 0 })); gL.add(stars);
   const lp = []; for (let i = 0; i < 140; i++) { const a = rnd(-1.0, 1.0) + Math.PI / 2, r = rnd(220, 270); lp.push(LX + 40 + Math.cos(a) * r, rnd(-6, 8), Math.sin(a) * r); }
   const lampG = new THREE.BufferGeometry(); lampG.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3));
-  const lampare = new THREE.Points(lampG, new THREE.PointsMaterial({ map: haloTex, color: 0xffd27a, size: 4.5, fog: false, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); gL.add(lampare);
+  const lampare = new THREE.Points(lampG, new THREE.PointsMaterial({ map: haloTex, color: new THREE.Color(0xffd27a).multiplyScalar(4), size: 4.5, fog: false, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); gL.add(lampare);
   // isole sospese di pietra bianca, legate da ponti di luce (lontane, decorative)
   const islandMat = lam(0xf2eee6), islandUnder = lam(0xd8cfc0), bridgeMat = glow(0xfff1c8, { transparent: true, opacity: 0.55 });
   const floating = [];
@@ -428,9 +538,9 @@ export function buildWorld(scene, data, hooks) {
   add({ id: 'rocce', name: 'Le rocce con le rune', pos: [LX - 7, 0.8, 6.8], radius: 2, markerY: 2.0, desc: 'Segnano fin dove arriva la marea di luce.',
     open: () => [h('h2', {}, 'Le rocce con le rune'), h('p', {}, 'Tra una cesta e l\'altra spuntano vecchie rocce piantate nel sale, segnate da rune. Segnano fin dove arriva ogni marea. Il sale le ha in parte consumate.')] });
   // le raccoglitrici del sale, e l'anziana
-  npc('raccoglitrice', LX - 4, -1.6, Math.PI * 0.1, { parent: gL }); npc('raccoglitrice', LX + 3.5, -1.2, -Math.PI * 0.2, { parent: gL }); npc('raccoglitrice', LX + 8, -1.4, -Math.PI * 0.6, { parent: gL });
+  npc('raccoglitrice', LX - 4, -1.6, Math.PI * 0.1, { parent: gL }); npc('raccoglitrice', LX + 3.5, -1.2, -Math.PI * 0.2, { parent: gL, lines: ['♪ «C\'era una riva sola e una sola marea: di là le reti, di qua le ceste, e a tutti buona marea.» ♪'] }); npc('raccoglitrice', LX + 8, -1.4, -Math.PI * 0.6, { parent: gL });
   solidR(LX - 4, -1.6, 0.4); solidR(LX + 3.5, -1.2, 0.4); solidR(LX + 8, -1.4, 0.4);
-  npc('anziana', LX + 1, 5.6, Math.PI * 0.95, { parent: gL }); solidR(LX + 1, 5.6, 0.45);
+  npc('anziana', LX + 1, 5.6, Math.PI * 0.95, { parent: gL, lines: ['«Buona marea.»', '«Le chiamiamo maree di luce.»'] }); solidR(LX + 1, 5.6, 0.45);
   add({ id: 'anziana', name: "L'anziana del sale", pos: [LX + 1, 1, 5.6], radius: 2.2, markerY: 2.6, desc: 'Raccoglie il sale a manciate, senza fretta.', secret: 'canzone',
     open: () => [h('h2', {}, "L'anziana del sale"), h('p', { class: 'quote' }, '«Buona marea.»'),
       h('p', {}, 'Ha le mani screpolate come quelle dei pescatori di Marechiaro. Spiega che due volte al giorno la luce aumenta, come da voi sale la marea. Poi si ritira, e dove è passata lascia il sale di luce: sulle terrazze, sui tetti, sui rami degli alberi.'),
@@ -440,7 +550,7 @@ export function buildWorld(scene, data, hooks) {
       h('p', { class: 'muted' }, `La prossima marea di luce arriva tra ${Math.ceil(tideState().next / 60)} minuti. Restate sulla spiaggia per vederla.`)] });
   // l'arco di luce per tornare alla Grotta dei Sussurri
   const backArch = new THREE.Group(); backArch.position.set(LX - 14, 0, 2); backArch.rotation.y = Math.PI / 2; gL.add(backArch);
-  mesh(new THREE.TorusGeometry(1.9, 0.1, 8, 36, Math.PI), glow(0xfff4d8), 0, 0, 0, backArch);
+  mesh(new THREE.TorusGeometry(1.9, 0.1, 8, 36, Math.PI), glow(0xfff4d8, { k: 1.5 }), 0, 0, 0, backArch);
   const backPortal = mesh(new THREE.CircleGeometry(1.8, 30, 0, Math.PI), new THREE.MeshBasicMaterial({ color: 0x7ab8e0, transparent: true, opacity: 0.55, side: THREE.DoubleSide }), 0, 0, 0, backArch);
   animated.push(t => { if (gL.visible) backPortal.material.opacity = 0.4 + Math.sin(t * 2) * 0.15; });
   add({ id: 'arco-ritorno', name: "L'arco di luce", pos: [LX - 13.6, 1, 2], radius: 2, markerY: 2.6, desc: 'Riporta alla Grotta dei Sussurri.',
@@ -469,7 +579,31 @@ export function buildWorld(scene, data, hooks) {
   });
 
   // --- ponti di luce: sotto i passi si allarga una piccola onda di colore ---
-  const lightBridge = (x0, z0, x1, z1, w) => { const dx = x1 - x0, dz = z1 - z0, len = Math.hypot(dx, dz); const b = mesh(new THREE.BoxGeometry(w, 0.1, len), new THREE.MeshBasicMaterial({ color: 0xfff0c8, transparent: true, opacity: 0.6 }), (x0 + x1) / 2, -0.05, (z0 + z1) / 2, gL); b.rotation.y = Math.atan2(dx, dz); for (const s of [-1, 1]) { const r = mesh(new THREE.BoxGeometry(0.05, 0.05, len), glow(0xfff6dc), (x0 + x1) / 2 + Math.cos(b.rotation.y) * s * w / 2, 0.7, (z0 + z1) / 2 - Math.sin(b.rotation.y) * s * w / 2, gL); r.rotation.y = b.rotation.y; } return b; };
+  // I ponti «comparivano sotto i piedi solo quando servivano»: da lontano se ne intuisce appena la traccia,
+  // vicino al giocatore le lastre di luce si accendono una dopo l'altra.
+  const tileGeo = new THREE.BoxGeometry(1, 0.06, 0.78), tileMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+  const bridgeTiles = [], tileCol = new THREE.Color(), tileBase = new THREE.Color(0xfff0c8);
+  const lightBridge = (x0, z0, x1, z1, w) => {
+    const dx = x1 - x0, dz = z1 - z0, len = Math.hypot(dx, dz), ry = Math.atan2(dx, dz);
+    const b = mesh(new THREE.BoxGeometry(w, 0.1, len), new THREE.MeshBasicMaterial({ color: 0xfff0c8, transparent: true, opacity: 0.16, depthWrite: false }), (x0 + x1) / 2, -0.06, (z0 + z1) / 2, gL); b.rotation.y = ry; b.userData.noShadow = true;
+    for (const s of [-1, 1]) { const r = mesh(new THREE.BoxGeometry(0.05, 0.05, len), glow(0xfff6dc, { k: 1.6 }), (x0 + x1) / 2 + Math.cos(ry) * s * w / 2, 0.7, (z0 + z1) / 2 - Math.sin(ry) * s * w / 2, gL); r.rotation.y = ry; }
+    const n = Math.ceil(len / 0.82), im = new THREE.InstancedMesh(tileGeo, tileMat, n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), sc = new THREE.Vector3(w * 0.96, 1, 1), pos = [];
+    for (let i = 0; i < n; i++) { const k = (i + 0.5) / n, p = new THREE.Vector3(x0 + dx * k, 0.0, z0 + dz * k); pos.push(p); im.setMatrixAt(i, m4.compose(p, q, sc)); im.setColorAt(i, tileCol.setScalar(0)); }
+    im.frustumCulled = false; gL.add(im); bridgeTiles.push({ im, pos, lv: new Float32Array(n) });
+    return b;
+  };
+  animated.push((t, dt, ctx) => {
+    if (!gL.visible || !ctx?.me) return;
+    for (const B of bridgeTiles) {
+      for (let i = 0; i < B.pos.length; i++) {
+        const d = Math.hypot(B.pos[i].x - ctx.me.x, B.pos[i].z - ctx.me.z), want = d < 4.5 ? 1 : d < 7 ? (7 - d) / 2.5 : 0;
+        B.lv[i] += (want - B.lv[i]) * Math.min(1, dt * (want > B.lv[i] ? 9 : 2.5));
+        const shimmer = 0.85 + Math.sin(t * 3 + i * 0.7) * 0.15;
+        B.im.setColorAt(i, tileCol.copy(tileBase).multiplyScalar(B.lv[i] * 1.25 * shimmer));
+      }
+      B.im.instanceColor.needsUpdate = true;
+    }
+  });
   lightBridge(LX + 13.5, 2, LX + 28.5, 2, 2);
   lightBridge(LX + 39, -7.5, LX + 39, -22, 2);
   lightBridge(LX + 39, 12.4, LX + 39, 20.2, 2);
@@ -497,7 +631,7 @@ export function buildWorld(scene, data, hooks) {
     terraces.push({ g, y, s: rnd(0, 6) });
     // ponticello di luce verso la terrazza principale
     const from = new THREE.Vector3(GXL + dx * 0.68, 0, GZ + dz * 0.68), to = g.position.clone(); const d = from.distanceTo(to);
-    const b = mesh(new THREE.BoxGeometry(0.7, 0.08, d), new THREE.MeshBasicMaterial({ color: 0xfff0c8, transparent: true, opacity: 0.45 }), (from.x + to.x) / 2, (from.y + to.y) / 2, (from.z + to.z) / 2, gL); b.lookAt(to);
+    const b = mesh(new THREE.BoxGeometry(0.7, 0.08, d), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xfff0c8).multiplyScalar(1.7), transparent: true, opacity: 0.45 }), (from.x + to.x) / 2, (from.y + to.y) / 2, (from.z + to.z) / 2, gL); b.lookAt(to);
   }
   edge(GXL, GZ, 12.0, 10.9, [Math.PI, -Math.PI / 2, Math.PI / 2]);
   animated.push(t => { if (!gL.visible) return; for (const o of terraces) o.g.position.y = o.y + Math.sin(t * 0.5 + o.s) * 0.25; });
@@ -534,6 +668,20 @@ export function buildWorld(scene, data, hooks) {
   circle(LX + 39, -21, gL); add({ id: 's-cerchio2', name: 'Un cerchio inciso', pos: [LX + 39, 0.1, -21], radius: 1.4, hidden: true, secret: 'cerchio-2', markerY: 0.9, desc: 'Quattro incavi.', open: circleTxt });
   circle(LX + 12, 6.8, gL); add({ id: 's-cerchio3', name: 'Un cerchio inciso', pos: [LX + 12, 0.1, 6.8], radius: 1.5, hidden: true, secret: 'cerchio-3', markerY: 0.9, desc: 'Quattro incavi.', open: circleTxt });
 
+  // farfalle tra i fiori dei Giardini
+  { const wingG = new THREE.PlaneGeometry(0.16, 0.12).translate(0.08, 0, 0), bf = [];
+    const cols = [0xffd84a, 0x8ad8ff, 0xff9ac8, 0xffffff, 0xb8f08a];
+    for (let i = 0; i < 16; i++) { const g = new THREE.Group(); gL.add(g); const m = new THREE.MeshBasicMaterial({ color: new THREE.Color(cols[i % 5]).multiplyScalar(1.15), side: THREE.DoubleSide });
+      const L = mesh(wingG, m, 0, 0, 0, g), R = mesh(wingG, m, 0, 0, 0, g); R.scale.x = -1;
+      bf.push({ g, L, R, cx: GXL + srnd(-9, 9), cz: GZ + srnd(-8, 8), r: srnd(0.6, 2.2), s: srnd(0, 6), v: srnd(0.4, 0.9), y: srnd(0.5, 1.8) }); }
+    animated.push(t => { if (!gL.visible) return; for (const b of bf) { const a = t * b.v + b.s; b.g.position.set(b.cx + Math.cos(a) * b.r + Math.sin(a * 2.3) * 0.3, b.y + Math.sin(a * 3.1) * 0.25, b.cz + Math.sin(a) * b.r); b.g.rotation.y = -a; const f = Math.sin(t * 16 + b.s) * 1.1; b.L.rotation.y = f; b.R.rotation.y = -f; } }); }
+  // il sale di luce resta «sulle terrazze, sui tetti, sui rami degli alberi»: si riaccende a ogni marea e poi si spegne piano
+  { const sp = [];
+    for (let i = 0; i < 160; i++) { const a = rnd(0, 6.28), r = rnd(0.4, 3.2); sp.push(treeX + Math.cos(a) * r, rnd(2.6, 5.4), treeZ + Math.sin(a) * r); }
+    for (let i = 0; i < 260; i++) { const a = rnd(0, 6.28), r = rnd(10.6, 12.2); sp.push(GXL + Math.cos(a) * r, 0.05, GZ + Math.sin(a) * r * 0.9); }
+    const saltLeft = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(sp, 3)), new THREE.PointsMaterial({ map: haloTex, color: new THREE.Color(0xffe6a0).multiplyScalar(3.2), size: 0.22, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    gL.add(saltLeft);
+    animated.push(t => { if (!gL.visible) return; const st = tideState(), since = st.on ? 0 : st.t - 9; saltLeft.material.opacity = st.on ? Math.min(1, st.t / 4) : Math.max(0.15, 1 - since / 120) * (0.85 + Math.sin(t * 2.2) * 0.15); }); }
   // --- il palazzo di sale e la sua porta altissima ---
   const PX = LX + 51.5;
   const saltWhite = new THREE.MeshLambertMaterial({ color: 0xf8f4ec, emissive: 0x3a3020, flatShading: true });
@@ -605,7 +753,7 @@ export function buildWorld(scene, data, hooks) {
     const ex = BX + Math.sin(c.dir) * 3.5, ez = BZ + 3 + Math.cos(c.dir) * 0.6, tx = BX + Math.sin(c.dir) * c.dist, tz = BZ + Math.cos(c.dir) * c.dist;
     // un tratto di ponte di luce che si interrompe, e un cancello di luce chiuso
     const len = 5, mx = ex + Math.sin(c.dir) * len / 2, mz = ez + Math.cos(c.dir) * len / 2;
-    const b = mesh(new THREE.BoxGeometry(1.4, 0.08, len), new THREE.MeshBasicMaterial({ color: 0xfff0c8, transparent: true, opacity: 0.35 }), mx, -0.05, mz, gL); b.rotation.y = c.dir;
+    const b = mesh(new THREE.BoxGeometry(1.4, 0.08, len), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xfff0c8).multiplyScalar(1.7), transparent: true, opacity: 0.35 }), mx, -0.05, mz, gL); b.rotation.y = c.dir;
     const gx = ex + Math.sin(c.dir) * 1.2, gz = ez + Math.cos(c.dir) * 1.2;
     const gate = mesh(new THREE.TorusGeometry(1.1, 0.06, 6, 24, Math.PI), glow(0xfff4d8), gx, 0, gz, gL); gate.rotation.y = c.dir;
     const veil = mesh(new THREE.CircleGeometry(1.05, 24, 0, Math.PI), new THREE.MeshBasicMaterial({ color: 0xfff0d0, transparent: true, opacity: 0.35, side: THREE.DoubleSide }), gx, 0, gz, gL); veil.rotation.y = c.dir;
@@ -622,7 +770,7 @@ export function buildWorld(scene, data, hooks) {
     const g = new THREE.Group(); g.position.set(tx, 4 + i * 3, tz); gL.add(g);
     mesh(new THREE.CylinderGeometry(14, 12, 3, 12), islandMat, 0, 0, 0, g); mesh(new THREE.ConeGeometry(12, 22, 12), islandUnder, 0, -12, 0, g).rotation.x = Math.PI;
     if (c.id === 'selva') for (let k = 0; k < 12; k++) { const a = k * 0.55, r = 3 + (k % 4) * 2.4; mesh(new THREE.CylinderGeometry(0.7, 1.1, 22, 7), lam(0xb8b0a0), Math.cos(a) * r, 11, Math.sin(a) * r, g); mesh(new THREE.IcosahedronGeometry(5, 0), lam(0xc8e0d8), Math.cos(a) * r, 24, Math.sin(a) * r, g); }
-    if (c.id === 'monte') { mesh(new THREE.ConeGeometry(11, 30, 7), lam(0x2a2630), 0, 16, 0, g); for (let k = 0; k < 6; k++) { const v = mesh(new THREE.BoxGeometry(0.3, 18, 0.3), glow(0xd8b04a), Math.cos(k) * 4, 12, Math.sin(k) * 4, g); v.rotation.z = Math.cos(k * 2) * 0.4; } }
+    if (c.id === 'monte') { mesh(new THREE.ConeGeometry(11, 30, 7), lam(0x2a2630), 0, 16, 0, g); for (let k = 0; k < 6; k++) { const v = mesh(new THREE.BoxGeometry(0.3, 18, 0.3), glow(0xd8b04a, { k: 1 }), Math.cos(k) * 4, 12, Math.sin(k) * 4, g); v.rotation.z = Math.cos(k * 2) * 0.4; } }
     if (c.id === 'risacca') { for (let k = 0; k < 5; k++) { const f = mesh(new THREE.PlaneGeometry(2.5, 16), new THREE.MeshBasicMaterial({ color: 0x9fd8ff, transparent: true, opacity: 0.7, side: THREE.DoubleSide }), -6 + k * 3, 6 + (k % 2) * 4, 0, g); f.rotation.z = (k - 2) * 0.35; } }
     if (c.id === 'solaria') { for (let k = 0; k < 9; k++) { const a = k * 0.7, r = 2 + (k % 3) * 3.5, hh = 10 + (k % 4) * 6; mesh(new THREE.CylinderGeometry(0.9, 1.3, hh, 8), saltWhite, Math.cos(a) * r, hh / 2, Math.sin(a) * r, g); mesh(new THREE.ConeGeometry(1.4, 4, 8), lam(0xe8c070), Math.cos(a) * r, hh + 2, Math.sin(a) * r, g); }
       mesh(new THREE.CylinderGeometry(1.4, 1.8, 34, 10), saltWhite, 0, 17, 0, g); const beam = mesh(new THREE.ConeGeometry(4, 60, 16, 1, true), new THREE.MeshBasicMaterial({ color: 0xffe0a0, transparent: true, opacity: 0.18, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending }), 0, 35, 0, g); beam.rotation.z = Math.PI / 2; beam.geometry.translate(0, -30, 0);
@@ -694,13 +842,14 @@ export function buildWorld(scene, data, hooks) {
     objects, solids, animated, areas: AREAS,
     spawn: { x: 0, z: 16.6, yaw: 0 },
     points: {
-      grotta: { x: GX, z: 19.5, yaw: 0 }, luminos: { x: LX - 11, z: 2, yaw: -Math.PI / 2 }, grottaDaLuminos: { x: GX, z: CZ - 3.5, yaw: Math.PI }, marechiaro: { x: 2.4, z: 7, yaw: Math.PI },
+      grotta: { x: GX, z: 19.5, yaw: 0 }, luminos: { x: LX - 8, z: 2, yaw: -Math.PI / 2 }, grottaDaLuminos: { x: GX, z: CZ - 3.5, yaw: Math.PI }, marechiaro: { x: 2.4, z: 7, yaw: Math.PI },
     },
-    marcoBoat, dolphins, stones,
+    marcoBoat, dolphins, stones, sea,
     openArch() { archOpen = true; },
     get archOpen() { return archOpen; },
     footRing, setRegion, fogFor, bookPanel, signupPanel,
     get night() { return night; },
+    groupOf(region) { return region === 'M' ? gM : region === 'G' ? gG : gL; },
     update(t, dt, ctx) { for (const f of animated) f(t, dt, ctx); },
   };
 }

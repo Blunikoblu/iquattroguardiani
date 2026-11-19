@@ -1,14 +1,15 @@
 // Luminos · il mondo del libro. Punto di ingresso: collega mondo, personaggi, rete e interfaccia.
 import * as THREE from 'three';
-import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611182305';
-import { h } from './util.js?v=202611182305';
-import { audio } from './audio.js?v=202611182305';
-import { Avatar, previewRenderer } from './avatars.js?v=202611182305';
-import { buildWorld, zoneOf, regionOf } from './world.js?v=202611182305';
-import { createSecrets } from './secrets.js?v=202611182305';
-import { createCollider, createPlayer } from './player.js?v=202611182305';
-import { createNet } from './net.js?v=202611182305';
-import { createUI } from './ui.js?v=202611182305';
+import { createFX } from './fx.js?v=202611191110';
+import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611191110';
+import { h } from './util.js?v=202611191110';
+import { audio } from './audio.js?v=202611191110';
+import { Avatar, previewRenderer } from './avatars.js?v=202611191110';
+import { buildWorld, zoneOf, regionOf } from './world.js?v=202611191110';
+import { createSecrets } from './secrets.js?v=202611191110';
+import { createCollider, createPlayer } from './player.js?v=202611191110';
+import { createNet } from './net.js?v=202611191110';
+import { createUI } from './ui.js?v=202611191110';
 
 const isTouch = matchMedia('(pointer: coarse)').matches;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -56,6 +57,9 @@ const hooks = {
 };
 const world = buildWorld(scene, data, hooks);
 
+const fx = createFX(renderer, scene, camera, { isTouch });
+fx.makeWater(world.sea);
+
 const collider = createCollider(0.3);
 collider.areas.push(...world.areas);
 collider.solids.push(...world.solids);
@@ -76,7 +80,7 @@ const colOf = id => AVATARS.find(a => a.id === id)?.col || '#f5c56b';
 let me = null;
 function buildMe() {
   if (me) { scene.remove(me.g); me.dispose(); }
-  me = new Avatar(myChoice.av, colOf(myChoice.av), null); scene.add(me.g);
+  me = new Avatar(myChoice.av, colOf(myChoice.av), null); scene.add(me.g); fx.cast(me.g);
 }
 buildMe();
 function setGuardian(id) {
@@ -89,7 +93,7 @@ function setGuardian(id) {
 const others = new Map(); // id -> { meta, av, x, z, r, has, seen, metT }
 function addOther(id, meta) {
   const av = new Avatar(meta.av, meta.col, meta.nick);
-  av.g.visible = false; scene.add(av.g);
+  av.g.visible = false; scene.add(av.g); fx.cast(av.g);
   others.set(id, { meta, av, x: 0, z: 0, r: 0, has: false, seen: performance.now(), metT: -1e9 });
 }
 function removeOther(id) { const o = others.get(id); if (!o) return; scene.remove(o.av.g); o.av.dispose(); others.delete(id); }
@@ -379,6 +383,7 @@ function menuPanel() {
       b('👥 Chi è a Luminos', 'saluta e raggiungi', whoPanel),
       b(viewMode === 'terza' ? '🎥 Vista: da dietro' : '👁 Vista: prima persona', 'tocca per cambiare (tasto V)', () => { setView(viewMode === 'terza' ? 'prima' : 'terza'); ui.closePanel(); }),
       b(audio.enabled ? '🔊 Suoni: attivi' : '🔇 Suoni: spenti', 'molto discreti (tasto M)', () => { toggleAudio(); ui.closePanel(); }),
+      b(audio.musicOn ? '🎵 Musica: attiva' : '🎵 Musica: spenta', 'sottofondo leggero, diverso in ogni luogo', () => { const on = audio.toggleMusic(); audio.unlock(); ui.toast(on ? 'Musica attiva.' : 'Musica spenta.'); ui.closePanel(); }),
       b('⚓ Torna al molo', 'riparti da Marechiaro', () => { ui.closePanel(); fadeTo(() => player.teleport(world.spawn.x, world.spawn.z, world.spawn.yaw)); })),
     social.length ? h('p', { style: 'margin-top:14px' }, 'Seguici: ', ...social.flatMap(([n, u], i) => [i ? ' · ' : '', h('a', { href: u, target: '_blank', rel: 'noopener', style: 'color:#f5c56b' }, n)])) : null,
     h('p', { class: 'muted', style: 'margin-top:14px' }, isTouch
@@ -445,12 +450,12 @@ function tick(dt, time) {
   const F = world.fogFor(zona, p.z), a = Math.min(1, dt * 2.5);
   scene.fog.color.lerp(fogCol.setHex(F.c), a); scene.fog.near += (F.near - scene.fog.near) * a; scene.fog.far += (F.far - scene.fog.far) * a; scene.background.copy(scene.fog.color);
   ambT -= dt;
-  if (ambT <= 0) { ambT = 0.25; const amb = zona === 'marechiaro' || (zona === 'grotta' && p.z > 15.5) ? 'molo' : zona === 'grotta' || zona === 'lago' ? 'caverne' : 'piazza'; audio.ambient(0.25, { area: amb, acqua: 0, t: time }); }
+  if (ambT <= 0) { ambT = 0.25; const amb = zona === 'marechiaro' || (zona === 'grotta' && p.z > 15.5) ? 'molo' : zona === 'grotta' || zona === 'lago' ? 'caverne' : 'piazza'; audio.ambient(0.25, { area: amb, acqua: 0, t: time }); if (entered || cinema) audio.music(zona === 'marechiaro' || (zona === 'grotta' && p.z > 15.5) ? 'marechiaro' : zona === 'grotta' ? (p.z > 4.5 ? null : 'grotta') : zona === 'lago' ? 'grotta' : 'luminos', world.night); }
 
-  updateCamera(dt, zona);
-  if (!manual && dt > 0.034) { if (++slowFrames > 90 && pixelRatio > 0.75) { pixelRatio = Math.max(0.75, pixelRatio - 0.25); renderer.setPixelRatio(pixelRatio); renderer.setSize(innerWidth, innerHeight, false); slowFrames = 0; } }
+  if (cinema) cinema(dt); else updateCamera(dt, zona);
+  if (!manual && dt > 0.034) { if (++slowFrames > 90 && pixelRatio > 0.75) { pixelRatio = Math.max(0.75, pixelRatio - 0.25); renderer.setPixelRatio(pixelRatio); renderer.setSize(innerWidth, innerHeight, false); fx.resize(); slowFrames = 0; } }
   else slowFrames = Math.max(0, slowFrames - 1);
-  renderer.render(scene, camera);
+  fx.render(dt, p, world.groupOf(regionOf(p.x)));
 }
 requestAnimationFrame(frame);
 
@@ -463,11 +468,32 @@ requestAnimationFrame(frame);
   $('introSignup').onclick = () => ui.openPanel(world.signupPanel(), { label: 'Avvisami quando esce' });
 }
 
+// ---------- Volo d'apertura su Marechiaro (si salta toccando lo schermo) ----------
+let cinema = null;
+function flyover() {
+  if (reduceMotion || new URLSearchParams(location.search).has('nofly')) return Promise.resolve();
+  return new Promise(done => {
+    const P = [[-26, 16, -46], [-6, 9, -22], [9, 5.5, -4], [4, 3.6, 8.5], [0, 2.9, 20.4]].map(a => new THREE.Vector3(...a));
+    const L = [[0, 10, 34], [0, 6, 26], [2, 2, 12], [0, 1.4, 14], [0, 1.3, 14]].map(a => new THREE.Vector3(...a));
+    const cp = new THREE.CatmullRomCurve3(P), cl = new THREE.CatmullRomCurve3(L), look = new THREE.Vector3(), D = 8.5;
+    const card = h('div', { class: 'cine' }, h('div', { class: 'cine-t' }, 'Marechiaro'), h('div', { class: 'cine-s' }, 'A Marechiaro, ad agosto, il mare brilla così forte che bisogna guardarlo con gli occhi socchiusi.'), h('div', { class: 'cine-k' }, isTouch ? 'tocca per saltare' : 'clic o spazio per saltare'));
+    document.body.appendChild(card); requestAnimationFrame(() => card.classList.add('on'));
+    let t = 0;
+    const end = () => { if (!cinema) return; cinema = null; card.classList.remove('on'); setTimeout(() => card.remove(), 900); removeEventListener('pointerdown', end, true); removeEventListener('keydown', end, true); done(); };
+    addEventListener('pointerdown', end, true); addEventListener('keydown', end, true);
+    me.g.visible = false;
+    cinema = dt => { t += dt; const u = Math.min(1, t / D), e = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+      camera.position.copy(cp.getPoint(e)); camera.lookAt(look.copy(cl.getPoint(e))); if (u > 0.82) card.classList.remove('on'); if (u >= 1) end(); };
+  });
+}
+
 // ---------- Entrata ----------
 const choice = await ui.intro(myChoice, previewRenderer);
 myChoice = choice;
 store.set('nick', choice.nick); store.set('av', choice.av);
 buildMe();
+audio.unlock();
+await flyover();
 entered = true;
 $('secretsBtn').hidden = false;
 audio.unlock();
@@ -476,5 +502,5 @@ ui.toast(`Benvenuto a Marechiaro, ${choice.nick}. Il rombo dorato indica che puo
 setTimeout(() => { $('help').style.opacity = 0; }, 14000);
 
 // Per i test automatici e le riprese dei video (nessun dato sensibile).
-window.__lu = { camera, player, world, net, others, ui, use, secrets, collider, setView, routeTo, onTap, scene, renderer, me: () => me, travel, takeStone, startRace, get riding() { return riding; },
+window.__lu = { fx, camera, player, world, net, others, ui, use, secrets, collider, setView, routeTo, onTap, scene, renderer, me: () => me, travel, takeStone, startRace, get riding() { return riding; },
   enter() { entered = true; }, step(dt) { manual = true; manualTime += dt; tick(dt, manualTime); } };
