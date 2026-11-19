@@ -7,10 +7,10 @@
 // Si vede solo la regione in cui ti trovi (più leggero sui telefoni).
 // I pannelli sono costruiti con h() (DOM + textContent): niente innerHTML.
 import * as THREE from 'three';
-import { AVATARS } from './config.js?v=202611191243';
-import { h, wrapText } from './util.js?v=202611191243';
-import { Avatar } from './avatars.js?v=202611191243';
-import { drawRune } from './secrets.js?v=202611191243';
+import { AVATARS } from './config.js?v=202611191258';
+import { h, wrapText } from './util.js?v=202611191258';
+import { Avatar } from './avatars.js?v=202611191258';
+import { drawRune } from './secrets.js?v=202611191258';
 
 const GOLD = 0xf5c56b;
 let seed = 11;
@@ -602,7 +602,7 @@ export function buildWorld(scene, data, hooks) {
         const d = Math.hypot(B.pos[i].x - ctx.me.x, B.pos[i].z - ctx.me.z), want = d < 4.5 ? 1 : d < 7 ? (7 - d) / 2.5 : 0;
         B.lv[i] += (want - B.lv[i]) * Math.min(1, dt * (want > B.lv[i] ? 9 : 2.5));
         const shimmer = 0.85 + Math.sin(t * 3 + i * 0.7) * 0.15;
-        B.im.setColorAt(i, tileCol.copy(tileBase).multiplyScalar(B.lv[i] * 1.25 * shimmer));
+        B.im.setColorAt(i, tileCol.copy(tileBase).multiplyScalar(B.lv[i] * 0.75 * shimmer));
       }
       B.im.instanceColor.needsUpdate = true;
     }

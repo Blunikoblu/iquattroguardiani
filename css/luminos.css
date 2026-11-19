@@ -217,3 +217,6 @@ canvas.jico.rune{width:40px;height:40px}
 .jbadge.ok{opacity:1;border-color:#f5c56b;background:rgba(245,197,107,.08)}.jbadge span{font-size:28px}.jbadge small{color:#a8a5c0;font-size:11px}
 @media (max-width:520px){.jsum{grid-template-columns:repeat(3,1fr)}}
 @media (pointer:coarse){#tut{bottom:auto;top:100px}}
+
+/* riprese dei video (?rec): solo il mondo, senza interfaccia */
+html.rec .hud,html.rec #emoteBox,html.rec #powerBtn,html.rec #jumpBtn,html.rec #toasts,html.rec #tut,html.rec #prompt,html.rec #help,html.rec #netStatus,html.rec #areaTag,html.rec #cross,html.rec #attChip,html.rec #invito,html.rec #joy{display:none!important}
