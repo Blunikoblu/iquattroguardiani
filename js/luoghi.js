@@ -3,8 +3,8 @@
 // per il dono di un Guardiano, un oggetto speciale, una runa. Niente personaggi né eventi oltre il capitolo 5.
 // Ogni luogo è un'isola sopra il mare di nubi, lontana dalle altre (si vede solo quella in cui ti trovi).
 import * as THREE from 'three';
-import { h } from './util.js?v=202611191240';
-import { testo } from './testi.js?v=202611191240';
+import { h } from './util.js?v=202611191243';
+import { testo } from './testi.js?v=202611191243';
 
 export const LUOGHI_X = { selva: 600, monte: 700, risacca: 800, solaria: 900 };
 const REG = { V: 'selva', Z: 'monte', R: 'risacca', S: 'solaria' };
@@ -229,7 +229,7 @@ export function createLuoghi({ world, scene, ui, audio, diario, powers, me, hook
       for (let k = 0; k < 3; k++) { mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.24, 10), lam(0xb08a52), -0.7 + k * 0.7, 1.02, 0, tg); mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.04, 10), glow(0xfff1c8, { k: 1.6 }), -0.7 + k * 0.7, 1.15, 0, tg); }
       mesh(new THREE.SphereGeometry(0.12, 8, 6), glow(0xffd88a, { k: 2.6 }), 1.0, 1.9, 0.5, tg); solid({ x, z, r: 1.3 }); });
     add({ id: 'solaria-mercato', name: 'Il mercato di Solaria', pos: [CX - 6.5, 1, -1.2], radius: 2.4, markerY: 2.8, desc: 'Banchi, ceste di sale, lanterne.',
-      open: () => [h('h2', {}, 'Il mercato di Solaria'), h('p', {}, 'Banchi con le tende colorate, ceste di sale di luce, lanterne accese anche di giorno.'), h('p', { class: 'muted' }, 'Le raccoglitrici della spiaggia portano qui il loro sale.')] });
+      open: () => [h('h2', {}, 'Il mercato di Solaria'), h('p', {}, 'Banchi con le tende colorate, ceste di sale di luce, lanterne accese anche di giorno.'), h('p', { class: 'muted' }, 'È qui che l\'anziana del sale porta il sale buono a sua figlia.')] });
     animated.push((t, dt) => { if (!g.visible) return; towerBeam.rotation.y = t * 0.5;
       fl.forEach(f => { f.tg.position.y = f.y + Math.sin(t * 0.5 + f.s) * 0.6; });
       ponti.forEach(p => { const A = fl[p.a].tg.position, B = fl[p.b].tg.position; p.m.position.set((A.x + B.x) / 2, (A.y + B.y) / 2 + 0.2, (A.z + B.z) / 2); p.m.scale.z = A.distanceTo(B); p.m.lookAt(B.x, B.y + 0.2, B.z); }); });

@@ -7,10 +7,10 @@
 // Si vede solo la regione in cui ti trovi (più leggero sui telefoni).
 // I pannelli sono costruiti con h() (DOM + textContent): niente innerHTML.
 import * as THREE from 'three';
-import { AVATARS } from './config.js?v=202611191240';
-import { h, wrapText } from './util.js?v=202611191240';
-import { Avatar } from './avatars.js?v=202611191240';
-import { drawRune } from './secrets.js?v=202611191240';
+import { AVATARS } from './config.js?v=202611191243';
+import { h, wrapText } from './util.js?v=202611191243';
+import { Avatar } from './avatars.js?v=202611191243';
+import { drawRune } from './secrets.js?v=202611191243';
 
 const GOLD = 0xf5c56b;
 let seed = 11;
@@ -542,11 +542,12 @@ export function buildWorld(scene, data, hooks) {
   // le raccoglitrici del sale, e l'anziana
   npc('raccoglitrice', LX - 4, -1.6, Math.PI * 0.1, { parent: gL }); npc('raccoglitrice', LX + 3.5, -1.2, -Math.PI * 0.2, { parent: gL, lines: ['♪ «C\'era una riva sola e una sola marea: di là le reti, di qua le ceste, e a tutti buona marea.» ♪'] }); npc('raccoglitrice', LX + 8, -1.4, -Math.PI * 0.6, { parent: gL });
   solidR(LX - 4, -1.6, 0.4); solidR(LX + 3.5, -1.2, 0.4); solidR(LX + 8, -1.4, 0.4);
-  npc('anziana', LX + 1, 5.6, Math.PI * 0.95, { parent: gL, lines: ['«Buona marea.»', '«Le chiamiamo maree di luce.»'] }); solidR(LX + 1, 5.6, 0.45);
+  npc('anziana', LX + 1, 5.6, Math.PI * 0.95, { parent: gL, lines: ['«Buona marea.»', '«Le chiamiamo maree di luce.»', '«Domani vado al mercato di Solaria, da mia figlia. Volevo portarle il sale buono.»'] }); solidR(LX + 1, 5.6, 0.45);
   add({ id: 'anziana', name: "L'anziana del sale", pos: [LX + 1, 1, 5.6], radius: 2.2, markerY: 2.6, desc: 'Raccoglie il sale a manciate, senza fretta.', secret: 'canzone',
     open: () => [h('h2', {}, "L'anziana del sale"), h('p', { class: 'quote' }, '«Buona marea.»'),
       h('p', {}, 'Ha le mani screpolate come quelle dei pescatori di Marechiaro. Spiega che due volte al giorno la luce aumenta, come da voi sale la marea. Poi si ritira, e dove è passata lascia il sale di luce: sulle terrazze, sui tetti, sui rami degli alberi.'),
       h('p', { class: 'quote' }, '«Le chiamiamo maree di luce.»'),
+      h('p', { class: 'quote' }, '«Domani vado al mercato di Solaria, da mia figlia. Volevo portarle il sale buono.»'),
       h('p', {}, 'Poco più in là, le raccoglitrici cantano mentre riempiono le ceste, con le stesse parole che tornano a ogni giro:'),
       h('p', { class: 'quote' }, 'C\'era una riva sola e una sola marea: di là le reti, di qua le ceste, e a tutti buona marea.'),
       h('p', { class: 'muted' }, `La prossima marea di luce arriva tra ${Math.ceil(tideState().next / 60)} minuti. Restate sulla spiaggia per vederla.`)] });

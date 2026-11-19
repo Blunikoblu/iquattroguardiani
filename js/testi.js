@@ -35,7 +35,7 @@ export const TESTI = {
   'conchiglia-g': { tipo: 'gioco', ok: true, testo: '🐚 La conchiglia di cristallo è nel tuo taccuino.' },
   // i quattro luoghi (senza trama)
   'selva-1': { tipo: 'storia', ok: true, testo: 'Nella Selva di Maestrale il vento non smette mai. Gli alberi più vecchi si piegano tutti dalla stessa parte.' },
-  'monte-1': { tipo: 'storia', ok: true, testo: 'Le rocce del Monte Zavorra sono scure, ma attraversate da venature dorate. Se le tocchi, sembrano tiepide.' },
+  'monte-1': { tipo: 'storia', ok: true, testo: 'Le rocce del Monte Zavorra sono scure, ma attraversate da venature dorate. Se le tocchi, sono fredde.' },
   'risacca-1': { tipo: 'storia', ok: true, testo: 'L\'acqua della Risacca brilla e scorre in tutte le direzioni: di lato, all\'indietro, perfino verso il cielo.' },
   'solaria-1': { tipo: 'storia', ok: true, testo: 'Solaria ha torri dorate e cupole di sale. Di giorno è così luminosa che le ombre sembrano disegnate.' },
 };
