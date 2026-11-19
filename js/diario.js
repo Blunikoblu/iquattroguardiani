@@ -2,8 +2,8 @@
 // Tutto resta solo in questo browser (localStorage): nessun account, nessun invio in rete.
 // Mantiene la chiave storica 'lu_scoperte' per chi aveva già trovato dei segreti.
 import * as THREE from 'three';
-import { h } from './util.js?v=202611191219';
-import { SECRETS, drawRune } from './secrets.js?v=202611191219';
+import { h } from './util.js?v=202611191232';
+import { SECRETS, drawRune } from './secrets.js?v=202611191232';
 
 const LUOGO = { marechiaro: 'Marechiaro', grotta: 'Grotta dei Sussurri', luminos: 'Luminos', cammini: 'I quattro cammini' };
 
@@ -32,7 +32,7 @@ export const CREATURE = [
   { id: 'granchio', nome: 'Il granchio della grotta', ico: '🦀', dove: 'Grotta', aiuto: 'Vive tra i sassi vicino al lago.' },
   { id: 'farfalla', nome: 'Le farfalle', ico: '🦋', dove: 'Luminos', aiuto: 'Tra i fiori dei Giardini.' },
   { id: 'coda-lunga', nome: 'Gli uccelli dalla coda lunga', ico: '🪁', dove: 'Luminos', aiuto: 'Volano bassi sopra i Giardini.' },
-  { id: 'lupo', nome: 'Il lupo di foglie dorate', ico: '🐺', dove: 'Selva di Maestrale', aiuto: 'Si mostra solo a chi sa chiamare la natura.' },
+  { id: 'lupo', nome: 'Il lupo di foglie dorate', ico: '🐺', dove: 'Giardini Sospesi', aiuto: 'Nei Giardini Sospesi si mostra solo a chi sa chiamare la natura.' },
   { id: 'geco', nome: 'Il geco delle venature', ico: '🦎', dove: 'Monte Zavorra', aiuto: 'Corre sulle venature dorate della roccia.' },
   { id: 'pesci', nome: 'I pesci di luce', ico: '🐟', dove: 'Risacca', aiuto: 'Nuotano dove la corrente gira.' },
   { id: 'colombe', nome: 'Le colombe di sale', ico: '🕊', dove: 'Solaria', aiuto: 'Si posano sulle cupole.' },

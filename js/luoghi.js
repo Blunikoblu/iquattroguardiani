@@ -3,8 +3,8 @@
 // per il dono di un Guardiano, un oggetto speciale, una runa. Niente personaggi né eventi oltre il capitolo 5.
 // Ogni luogo è un'isola sopra il mare di nubi, lontana dalle altre (si vede solo quella in cui ti trovi).
 import * as THREE from 'three';
-import { h } from './util.js?v=202611191219';
-import { testo } from './testi.js?v=202611191219';
+import { h } from './util.js?v=202611191232';
+import { testo } from './testi.js?v=202611191232';
 
 export const LUOGHI_X = { selva: 600, monte: 700, risacca: 800, solaria: 900 };
 const REG = { V: 'selva', Z: 'monte', R: 'risacca', S: 'solaria' };
@@ -80,16 +80,6 @@ export function createLuoghi({ world, scene, ui, audio, diario, powers, me, hook
     powers.spot({ id: 'selva-albero', x: oldX, z: oldZ, r: 3.6, who: ['luca'], shared: true, act: (gg, l) => apri(l), hint: () => serve('luca', 'Luca') });
     add({ id: 'selva-vecchio', name: 'L\'albero più vecchio', pos: [oldX + 1.2, 1, oldZ + 1.4], radius: 2.4, markerY: 2.4, desc: 'Le sue radici chiudono la radura.',
       open: () => [h('h2', {}, 'L\'albero più vecchio'), h('p', {}, open ? 'Le radici si sono ritirate. La radura a nord è aperta.' : 'Le sue radici si intrecciano fino a chiudere il passaggio verso nord. Sembrano vive.'), h('p', { class: 'muted' }, open ? '' : 'Forse il dono della Natura saprebbe parlarci. (Luca: tasto F o pulsante della pietra)')] });
-    // il lupo di foglie dorate, nella radura
-    const wolf = new THREE.Group(); wolf.position.set(CX + 5, 0, -10); wolf.rotation.y = -0.6; g.add(wolf);
-    { const wm = new THREE.MeshStandardMaterial({ color: 0xd8a83a, emissive: 0x6a4a10, emissiveIntensity: 0.6, roughness: 0.5, flatShading: true });
-      const b = mesh(new THREE.IcosahedronGeometry(0.5, 1), wm, 0, 0.75, 0, wolf); b.scale.set(0.8, 0.7, 1.5);
-      const hd = mesh(new THREE.IcosahedronGeometry(0.3, 1), wm, 0, 1.05, -0.75, wolf); mesh(new THREE.ConeGeometry(0.12, 0.35, 5), wm, 0, 0.98, -1.05, wolf).rotation.x = -Math.PI / 2;
-      for (const s of [-1, 1]) { mesh(new THREE.ConeGeometry(0.07, 0.2, 4), wm, s * 0.14, 1.32, -0.72, wolf); for (const z of [-0.45, 0.45]) mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.55, 5), wm, s * 0.2, 0.28, z, wolf); }
-      const tl = mesh(new THREE.ConeGeometry(0.12, 0.7, 5), wm, 0, 0.85, 0.85, wolf); tl.rotation.x = 1.0; }
-    solid({ x: CX + 5, z: -10, r: 0.8 });
-    add({ id: 'selva-lupo', name: 'Il lupo di foglie dorate', pos: [CX + 5, 1, -10], radius: 2.6, markerY: 2.0, desc: 'Ricoperto di foglie dorate.',
-      use: () => { diario.creatura('lupo'); hooks.toast(me().av === 'luca' ? testo('lupo-luca', 'lupo-g') : testo('lupo-g')); } });
     const premioS = premio('selva', 'piuma', CX - 6, 0.8, -11, g, 0xd8ffe8);
     // foglie trasportate dal vento
     const NL = 120, lp = new Float32Array(NL * 3); for (let i = 0; i < NL; i++) { lp[i * 3] = CX - 15 + Math.random() * 30; lp[i * 3 + 1] = Math.random() * 8; lp[i * 3 + 2] = -15 + Math.random() * 30; }
@@ -98,8 +88,7 @@ export function createLuoghi({ world, scene, ui, audio, diario, powers, me, hook
       for (let i = 0; i < NL; i++) { lp[i * 3] += dt * (2.2 + (i % 5) * 0.4); lp[i * 3 + 1] += Math.sin(t * 2 + i) * dt * 0.4; if (lp[i * 3] > CX + 15) lp[i * 3] = CX - 15; }
       leaves.geometry.attributes.position.needsUpdate = true;
       for (const tr of trees) { tr.tg.rotation.z = -0.08 + Math.sin(t * 1.3 + tr.s) * 0.03; tr.crown.rotation.x = Math.sin(t * 1.7 + tr.s) * 0.06; }
-      roots.children.forEach((r, i) => { r.scale.setScalar(Math.max(0.01, r.scale.x + ((open ? 0.01 : 1) - r.scale.x) * dt * 1.5)); });
-      wolf.visible = open; });
+      roots.children.forEach((r, i) => { r.scale.setScalar(Math.max(0.01, r.scale.x + ((open ? 0.01 : 1) - r.scale.x) * dt * 1.5)); }); });
   }
 
   // ---------------------------------------------------------------- Monte Zavorra

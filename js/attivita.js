@@ -4,12 +4,12 @@
 // Sincronizzazione: solo messaggi brevi e validati (net.act). Ciò che dipende dall'ora (la marea) è calcolato
 // dall'orologio, uguale per tutti senza server. Tutto funziona anche da soli.
 import * as THREE from 'three';
-import { h } from './util.js?v=202611191219';
-import { tideState, zoneOf } from './world.js?v=202611191219';
-import { RUNE_CACCIA } from './rune.js?v=202611191219';
-import { drawRune } from './secrets.js?v=202611191219';
-import { testo } from './testi.js?v=202611191219';
-import { AVATARS } from './config.js?v=202611191219';
+import { h } from './util.js?v=202611191232';
+import { tideState, zoneOf } from './world.js?v=202611191232';
+import { RUNE_CACCIA } from './rune.js?v=202611191232';
+import { drawRune } from './secrets.js?v=202611191232';
+import { testo } from './testi.js?v=202611191232';
+import { AVATARS } from './config.js?v=202611191232';
 
 const NOMEG = Object.fromEntries(AVATARS.map(a => [a.id, a.nome]));
 
@@ -102,12 +102,23 @@ export function createAttivita({ world, scene, ui, audio, diario, powers, net, m
   powers.spot({ id: 'natura-richiamo', x: 0, z: 0, r: 1e9, who: ['luca'], act: (g, local) => {
     if (!local) return false; const p = me(), z = zoneOf(p.x, p.z);
     if (z === 'marechiaro' || z === 'scogli') { gullFrom.set(p.x + 14, 12, p.z - 14); gullTo.set(p.x + 0.8, 1.6, p.z + 0.6); gullT = 6; gull.visible = true; diario.creatura('gabbiano'); hooks.toast('🕊️ Un gabbiano scende dal cielo e ti gira intorno.'); return true; }
-    if (z === 'giardini') { diario.creatura('farfalla'); hooks.toast('🦋 Le farfalle dei Giardini ti vengono incontro.'); return true; }
+    if (z === 'giardini') { diario.creatura('farfalla'); lupoT = 90; hooks.toast('🦋 Le farfalle dei Giardini ti vengono incontro. E tra le terrazze compare il lupo di foglie dorate.'); return true; }
     if (z === 'lago' || z === 'grotta') { diario.creatura('granchio'); hooks.toast('🦀 Il granchio della grotta si avvicina di lato.'); return true; }
     return false; } });
   animated.push((t, dt) => { if (gullT <= 0) return; gullT -= dt; const k = Math.min(1, (6 - gullT) / 2), back = gullT < 1.5 ? 1 - gullT / 1.5 : 0;
     const a = t * 3; gull.position.lerpVectors(gullFrom, gullTo, k).add(new THREE.Vector3(Math.cos(a) * 1.2 * k, back * 10, Math.sin(a) * 1.2 * k)); gull.rotation.y = -a;
     gull.children.forEach(c => { if (c.userData.s) c.rotation.z = c.userData.s * Math.sin(t * 14) * 0.5; }); if (gullT <= 0) gull.visible = false; });
+  // il lupo di foglie dorate: nei Giardini Sospesi, compare quando Luca chiama la natura
+  let lupoT = 0;
+  const wolf = new THREE.Group(); wolf.position.set(GXL + 3, 0, GZ - 3); wolf.rotation.y = 2.4; gL.add(wolf); wolf.visible = false;
+  { const wm = new THREE.MeshStandardMaterial({ color: 0xd8a83a, emissive: 0x6a4a10, emissiveIntensity: 0.6, roughness: 0.5, flatShading: true });
+    const b = mesh(new THREE.IcosahedronGeometry(0.5, 1), wm, 0, 0.75, 0, wolf); b.scale.set(0.8, 0.7, 1.5);
+    mesh(new THREE.IcosahedronGeometry(0.3, 1), wm, 0, 1.05, -0.75, wolf); mesh(new THREE.ConeGeometry(0.12, 0.35, 5), wm, 0, 0.98, -1.05, wolf).rotation.x = -Math.PI / 2;
+    for (const s of [-1, 1]) { mesh(new THREE.ConeGeometry(0.07, 0.2, 4), wm, s * 0.14, 1.32, -0.72, wolf); for (const z of [-0.45, 0.45]) mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.55, 5), wm, s * 0.2, 0.28, z, wolf); }
+    mesh(new THREE.ConeGeometry(0.12, 0.7, 5), wm, 0, 0.85, 0.85, wolf).rotation.x = 1.0; }
+  add({ id: 'lupo', name: 'Il lupo di foglie dorate', pos: [GXL + 3, 1, GZ - 3], radius: 2.6, markerY: 2.0, desc: 'Ricoperto di foglie dorate.', enabled: () => lupoT > 0,
+    use: () => { diario.creatura('lupo'); hooks.toast(me().av === 'luca' ? testo('lupo-luca', 'lupo-g') : testo('lupo-g')); } });
+  animated.push((t, dt) => { if (lupoT > 0) lupoT -= dt; wolf.visible = lupoT > 0; });
   // Marco e l'acqua: lo zampillo della fontana
   const jet = mesh(new THREE.CylinderGeometry(0.05, 0.12, 1, 8, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(0x9fd8ff).multiplyScalar(1.3), transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false }), -6, 1.4, 15.6, gM); jet.visible = false; let jetT = 0;
   powers.spot({ id: 'fontana-acqua', x: -6, z: 15.6, r: 3.5, who: ['marco'], shared: true, act: () => { jetT = 4; jet.visible = true; if (near(-6, 15.6, 6)) hooks.toast('💧 L\'acqua della fontana si alza in uno zampillo, alto e dritto, poi ricade.'); return true; } });
