@@ -144,6 +144,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .hud .lcol .pill{pointer-events:auto}
 
 /* Luminos */
+#intro .online{color:#cfe9d6;font:600 14px/1.4 ui-sans-serif,system-ui;margin:-12px auto 20px}
+#intro .online::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:#4ade80;margin-right:8px;box-shadow:0 0 8px #4ade80;vertical-align:1px}
 #intro .countline{color:#f5c56b;font:600 16px/1.4 ui-sans-serif,system-ui;margin:-6px auto 22px}
 #intro .link{background:none;border:0;color:#c9c2e0;text-decoration:underline;margin-top:16px;font-size:15px}
 #intro .author{color:#8a84a8;font:italic 14px/1.4 Georgia,serif;margin-top:26px}

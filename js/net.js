@@ -4,8 +4,8 @@
 // - NIENTE testo libero: chi riceve accetta solo nomi e frasi che esistono già nelle liste del mondo.
 // - Accesso anonimo invisibile (sessione per scheda, in sessionStorage). Nessuna email, nessun dato personale.
 // - Se qualcosa non va: canale pubblico di ripiego, poi modalità individuale.
-import { SUPABASE_URL, SUPABASE_KEY, CHANNEL_PRIVATE, CHANNEL_PUBLIC, NET, AVATARS, EMOTES, FRASI, WORLD, ZONES, isNome } from './config.js?v=202611192230';
-import { clamp, randomId } from './util.js?v=202611192230';
+import { SUPABASE_URL, SUPABASE_KEY, CHANNEL_PRIVATE, CHANNEL_PUBLIC, NET, AVATARS, EMOTES, FRASI, WORLD, ZONES, isNome } from './config.js?v=202611200900';
+import { clamp, randomId } from './util.js?v=202611200900';
 
 const AV = new Map(AVATARS.map(a => [a.id, a]));
 const SAY_IDS = new Set([...EMOTES.map(e => e.id), ...FRASI.map(f => f.id)]);
@@ -18,9 +18,9 @@ export function createNet(h) {
   let peers = new Map();              // id -> meta validata
   const rate = new Map();             // id -> { t, n } per limitare i messaggi in arrivo
   let last = { x: 0, z: 0, r: 0, a: 0, sent: 0, sx: 99, sz: 99, sr: 99, sa: 0 };
-  let sbPromise = null, lastSay = 0;
+  let sbPromise = null, lastSay = 0, connecting = false;
   function client() {
-    sbPromise ||= import('../supabase.min.js?v=202611192230').then(({ createClient }) => (sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    sbPromise ||= import('../supabase.min.js?v=202611200900').then(({ createClient }) => (sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: { storage: window.sessionStorage, storageKey: 'luminos-auth', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
       realtime: { params: { eventsPerSecond: 20 }, heartbeatIntervalMs: 20000 },
     })));
@@ -56,7 +56,7 @@ export function createNet(h) {
     }
     for (const [id, m] of peers) if (!next.has(id)) h.onPeerLeave?.(id, m);
     peers = next; joinedOnce = true;
-    h.onCount?.(peers.size + 1);
+    h.onCount?.(peers.size + (meta ? 1 : 0), !meta);
   }
 
   function onPos({ payload: p }) {
@@ -110,10 +110,10 @@ export function createNet(h) {
         if (c !== ch) return;
         if (s === 'SUBSCRIBED') {
           retry = 0; up = true;
-          try { await c.track(meta); } catch (e) {}
+          if (meta) try { await c.track(meta); } catch (e) {}
           if (!done) { done = true; clearTimeout(t); resolve(true); }
           status(priv ? 'online' : 'online-pubblico');
-          sendPos(last.x, last.z, last.r, true);
+          if (meta) sendPos(last.x, last.z, last.r, true);
         } else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT' || s === 'CLOSED') {
           if (!done) { done = true; clearTimeout(t); resolve(false); }
           else if (up && !closing) { up = false; scheduleRetry(); }
@@ -123,6 +123,10 @@ export function createNet(h) {
   }
 
   async function connect() {
+    if (connecting) return; connecting = true;
+    try { await connectInner(); } finally { connecting = false; }
+  }
+  async function connectInner() {
     if (!SUPABASE_URL || !SUPABASE_KEY) { status('solo', 'Anteprima: per ora esplori Luminos da solo. Gli altri visitatori arriveranno presto.'); return; }
     status('connecting', 'Mi collego agli altri Guardiani…');
     try {
@@ -149,7 +153,7 @@ export function createNet(h) {
 
   function sendPos(x, z, r, force = false, y = last.y || 0) {
     last.x = x; last.z = z; last.r = r; last.y = y;
-    if (!ch || !(mode === 'online' || mode === 'online-pubblico')) return;
+    if (!meta || !ch || !(mode === 'online' || mode === 'online-pubblico')) return;
     const now = performance.now();
     if (now - last.sent < 1000 / NET.sendHz) return;
     const moved = Math.abs(x - last.sx) + Math.abs(z - last.sz) + Math.abs(r - last.sr) + Math.abs(y - (last.sy || 0)) > 0.015;
@@ -166,7 +170,13 @@ export function createNet(h) {
     myId,
     get mode() { return mode; },
     get peers() { return peers; },
-    start(m) { meta = toMeta(m); connect(); },
+    // Schermata iniziale: guarda chi c'è senza farsi vedere (nessun dato inviato).
+    watch() { if (!meta && mode === 'off') connect(); },
+    start(m) {
+      meta = toMeta(m);
+      if (ch && mode.startsWith('online')) { ch.track(meta).catch(() => {}); h.onCount?.(peers.size + 1, false); sendPos(last.x, last.z, last.r, true); }
+      else if (!connecting && !retryTimer) connect();
+    },
     async updateMe(m) {
       meta = toMeta({ nick: m.nick ?? meta.n, av: m.av ?? meta.a, zona: m.zona ?? meta.z });
       if (ch && mode.startsWith('online')) try { await ch.track(meta); } catch (e) {}

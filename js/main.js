@@ -1,20 +1,20 @@
 // Luminos · il mondo del libro. Punto di ingresso: collega mondo, personaggi, rete e interfaccia.
 import * as THREE from 'three';
-import { createFX } from './fx.js?v=202611192230';
-import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611192230';
-import { h } from './util.js?v=202611192230';
-import { audio } from './audio.js?v=202611192230';
-import { Avatar, previewRenderer } from './avatars.js?v=202611192230';
-import { buildWorld, zoneOf, regionOf } from './world.js?v=202611192230';
-import { createDiario } from './diario.js?v=202611192230';
-import { createPowers } from './powers.js?v=202611192230';
-import { createAttivita } from './attivita.js?v=202611192230';
-import { createLuoghi } from './luoghi.js?v=202611192230';
-import { RUNE_CACCIA } from './rune.js?v=202611192230';
-import { testo } from './testi.js?v=202611192230';
-import { createCollider, createPlayer } from './player.js?v=202611192230';
-import { createNet } from './net.js?v=202611192230';
-import { createUI } from './ui.js?v=202611192230';
+import { createFX } from './fx.js?v=202611200900';
+import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611200900';
+import { h } from './util.js?v=202611200900';
+import { audio } from './audio.js?v=202611200900';
+import { Avatar, previewRenderer } from './avatars.js?v=202611200900';
+import { buildWorld, zoneOf, regionOf } from './world.js?v=202611200900';
+import { createDiario } from './diario.js?v=202611200900';
+import { createPowers } from './powers.js?v=202611200900';
+import { createAttivita } from './attivita.js?v=202611200900';
+import { createLuoghi } from './luoghi.js?v=202611200900';
+import { RUNE_CACCIA } from './rune.js?v=202611200900';
+import { testo } from './testi.js?v=202611200900';
+import { createCollider, createPlayer } from './player.js?v=202611200900';
+import { createNet } from './net.js?v=202611200900';
+import { createUI } from './ui.js?v=202611200900';
 
 const isTouch = matchMedia('(pointer: coarse)').matches;
 if (new URLSearchParams(location.search).has('rec')) document.documentElement.classList.add('rec'); // riprese: senza interfaccia
@@ -129,7 +129,12 @@ $('secretsN').textContent = `${secrets.count}/${secrets.total}`;
 
 const net = createNet({
   onStatus: (mode, msg) => { ui.setStatus(mode, mode === 'online' || mode === 'online-pubblico' ? '' : msg); if (mode === 'solo') ui.setCount(1); if (mode.startsWith('online')) setTimeout(() => attivita.requestState(), 1800); },
-  onCount: n => ui.setCount(n),
+  onCount: (n, guest) => {
+    if (!guest) { ui.setCount(n); return; }
+    const el = $('introOnline'); if (!el || entered) return;
+    el.textContent = n === 0 ? 'In questo momento non c\'è nessuno a Luminos: entra per primo!' : n === 1 ? 'In questo momento a Luminos c\'è 1 viaggiatore.' : `In questo momento a Luminos ci sono ${n} viaggiatori.`;
+    el.hidden = false;
+  },
   onPeerJoin: (id, meta, notify) => { addOther(id, meta); if (notify && entered) { ui.toast(`${meta.nick} è arrivato a Luminos`, 'join'); audio.join(); } },
   onPeerUpdate: (id, meta) => {
     const o = others.get(id); if (!o) return;
@@ -594,6 +599,7 @@ function flyover() {
   });
 }
 
+net.watch(); // conta chi è a Luminos già dalla schermata iniziale
 // ---------- Entrata ----------
 const choice = await ui.intro(myChoice, previewRenderer);
 myChoice = choice;
