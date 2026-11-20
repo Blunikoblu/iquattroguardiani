@@ -1,20 +1,20 @@
 // Luminos · il mondo del libro. Punto di ingresso: collega mondo, personaggi, rete e interfaccia.
 import * as THREE from 'three';
-import { createFX } from './fx.js?v=202611200900';
-import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611200900';
-import { h } from './util.js?v=202611200900';
-import { audio } from './audio.js?v=202611200900';
-import { Avatar, previewRenderer } from './avatars.js?v=202611200900';
-import { buildWorld, zoneOf, regionOf } from './world.js?v=202611200900';
-import { createDiario } from './diario.js?v=202611200900';
-import { createPowers } from './powers.js?v=202611200900';
-import { createAttivita } from './attivita.js?v=202611200900';
-import { createLuoghi } from './luoghi.js?v=202611200900';
-import { RUNE_CACCIA } from './rune.js?v=202611200900';
-import { testo } from './testi.js?v=202611200900';
-import { createCollider, createPlayer } from './player.js?v=202611200900';
-import { createNet } from './net.js?v=202611200900';
-import { createUI } from './ui.js?v=202611200900';
+import { createFX } from './fx.js?v=202611201600';
+import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611201600';
+import { h } from './util.js?v=202611201600';
+import { audio } from './audio.js?v=202611201600';
+import { Avatar, previewRenderer } from './avatars.js?v=202611201600';
+import { buildWorld, zoneOf, regionOf } from './world.js?v=202611201600';
+import { createDiario } from './diario.js?v=202611201600';
+import { createPowers } from './powers.js?v=202611201600';
+import { createAttivita } from './attivita.js?v=202611201600';
+import { createLuoghi } from './luoghi.js?v=202611201600';
+import { RUNE_CACCIA } from './rune.js?v=202611201600';
+import { testo } from './testi.js?v=202611201600';
+import { createCollider, createPlayer } from './player.js?v=202611201600';
+import { createNet } from './net.js?v=202611201600';
+import { createUI } from './ui.js?v=202611201600';
 
 const isTouch = matchMedia('(pointer: coarse)').matches;
 if (new URLSearchParams(location.search).has('rec')) document.documentElement.classList.add('rec'); // riprese: senza interfaccia
@@ -438,7 +438,7 @@ function menuPanel() {
     h('div', { class: 'menu' },
       b('🧍 Il tuo Guardiano', 'Marco, Sophia, Giulia o Luca', guardianPanel),
       b('📓 Taccuino', `${secrets.count}/${secrets.total} segreti · mappa, rune, creature`, openTaccuino),
-      b('📖 Il libro', 'presentazione, uscita e iscrizione', () => ui.openPanel(libroPanel(), { label: 'Il libro' })),
+      b('📖 Il libro', data.acquisto ? 'presentazione, ebook e avviso per il cartaceo' : 'presentazione, uscita e iscrizione', () => ui.openPanel(libroPanel(), { label: 'Il libro' })),
       b('👥 Chi è a Luminos', 'saluta, nascondi, segnala', whoPanel),
       b('☰ Elenco dei luoghi', 'tutto il mondo, senza 3D', listPanel),
       b('🧭 Primi passi', 'rivedi la guida iniziale', () => { ui.closePanel(); tutorial.show(true); }),

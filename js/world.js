@@ -7,10 +7,10 @@
 // Si vede solo la regione in cui ti trovi (più leggero sui telefoni).
 // I pannelli sono costruiti con h() (DOM + textContent): niente innerHTML.
 import * as THREE from 'three';
-import { AVATARS } from './config.js?v=202611200900';
-import { h, wrapText } from './util.js?v=202611200900';
-import { Avatar } from './avatars.js?v=202611200900';
-import { drawRune } from './secrets.js?v=202611200900';
+import { AVATARS } from './config.js?v=202611201600';
+import { h, wrapText } from './util.js?v=202611201600';
+import { Avatar } from './avatars.js?v=202611201600';
+import { drawRune } from './secrets.js?v=202611201600';
 
 const GOLD = 0xf5c56b;
 let seed = 11;
@@ -307,12 +307,12 @@ export function buildWorld(scene, data, hooks) {
       h('p', {}, 'La Grotta dei Sussurri si apre alla base delle scogliere, oltre il promontorio a sud del paese. Si vede solo arrivando dal mare.'),
       h('p', {}, h('button', { class: 'btn', type: 'button', onclick: () => hooks.travel('grotta') }, 'Prendi il mare'))] });
 
-  // il leggio del libro: copertina, uscita, iscrizione
+  // il leggio del libro: copertina, ebook, iscrizione
   const coverTex = canvasTex(10, 16, (g) => { g.fillStyle = '#1a2a50'; g.fillRect(0, 0, 10, 16); });
   new THREE.TextureLoader().load(data.copertina || 'img/copertina.jpg', t => { t.colorSpace = THREE.SRGBColorSpace; cover.material.map = t; cover.material.needsUpdate = true; });
   box(0.9, 1.0, 0.6, 0x6a4a2c, 4.6, 0.5, 13.6, gM); solid(4.6, 13.6, 1.1, 0.8);
   const cover = sign(0.64, 1.0, coverTex, 4.6, 1.55, 13.25, 0, gM); cover.rotation.x = -0.28;
-  add({ id: 'libro', name: 'Il libro', pos: [4.6, 1.2, 13.1], radius: 2.2, markerY: 2.4, desc: 'Copertina, uscita e iscrizione.', open: () => bookPanel() });
+  add({ id: 'libro', name: 'Il libro', pos: [4.6, 1.2, 13.1], radius: 2.2, markerY: 2.4, desc: data.acquisto ? 'Copertina, ebook e avviso per il cartaceo.' : 'Copertina, uscita e iscrizione.', open: () => bookPanel() });
   box(0.9, 1.0, 0.6, 0x6a4a2c, 7.4, 0.5, 13.6, gM); solid(7.4, 13.6, 1.1, 0.8);
   const countTex = canvasTex(400, 300, () => {}), regSign = sign(0.9, 0.68, countTex, 7.4, 1.4, 13.28, 0, gM); regSign.rotation.x = -0.28;
   add({ id: 'registro', name: data.acquisto ? 'Avvisami per il cartaceo' : 'Avvisami quando esce', pos: [7.4, 1.1, 13.1], radius: 2.2, markerY: 2.2, desc: data.acquisto ? 'Iscrizione per sapere quando esce il libro cartaceo.' : 'Iscrizione per sapere quando esce il libro.', open: () => signupPanel() });
@@ -772,7 +772,7 @@ export function buildWorld(scene, data, hooks) {
           h('p', {}, h('button', { class: 'btn', type: 'button', onclick: () => hooks.travel('cammino-' + c.id) }, 'Attraversa il cammino'))]
         : [h('h2', {}, 'I quattro cammini'), h('h3', {}, c.nome),
         h('p', {}, 'Laggiù, lontano, oltre il ponte di luce che si interrompe. Il cammino è ancora chiuso.'), h('p', { style: 'color:#f5c56b' }, apertura(c.id).lungo),
-        h('p', { class: 'muted' }, 'I quattro cammini si aprono uno alla volta prima dell\'uscita del libro. Che cosa c\'è laggiù lo scoprirai camminandoci, o leggendo.')] });
+        h('p', { class: 'muted' }, 'I quattro cammini si aprono uno alla volta. Che cosa c\'è laggiù lo scoprirai camminandoci, o leggendo.')] });
     c.veil = veil;
     // il luogo, lontano, sopra il mare di nubi
     const g = new THREE.Group(); g.position.set(tx, 4 + i * 3, tz); gL.add(g);
@@ -812,7 +812,7 @@ export function buildWorld(scene, data, hooks) {
   }
   function apertura(id) {
     const d = data.aperture?.[id], u = d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(d + 'T00:00:00') : null;
-    if (!u) return { testo: 'si apre più avanti', lungo: 'Si apre più avanti, prima dell\'uscita del libro.' };
+    if (!u) return { testo: 'si apre più avanti', lungo: 'Si apre più avanti.' };
     const now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate()), g = Math.round((u - today) / 86400000);
     if (g <= 0) return { testo: 'aperto', lungo: 'Il cammino è aperto.', aperto: true };
     return { testo: `si apre tra ${g} ${g === 1 ? 'giorno' : 'giorni'}`, lungo: `Si apre il ${u.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}.` };
