@@ -3,8 +3,8 @@
 // per il dono di un Guardiano, un oggetto speciale, una runa. Niente personaggi né eventi oltre il capitolo 5.
 // Ogni luogo è un'isola sopra il mare di nubi, lontana dalle altre (si vede solo quella in cui ti trovi).
 import * as THREE from 'three';
-import { h } from './util.js?v=202611201600';
-import { testo } from './testi.js?v=202611201600';
+import { h } from './util.js?v=202611201615';
+import { testo } from './testi.js?v=202611201615';
 
 export const LUOGHI_X = { selva: 600, monte: 700, risacca: 800, solaria: 900 };
 const REG = { V: 'selva', Z: 'monte', R: 'risacca', S: 'solaria' };
