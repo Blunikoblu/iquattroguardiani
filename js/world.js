@@ -7,10 +7,10 @@
 // Si vede solo la regione in cui ti trovi (più leggero sui telefoni).
 // I pannelli sono costruiti con h() (DOM + textContent): niente innerHTML.
 import * as THREE from 'three';
-import { AVATARS } from './config.js?v=202611222330';
-import { h, wrapText } from './util.js?v=202611222330';
-import { Avatar } from './avatars.js?v=202611222330';
-import { drawRune } from './secrets.js?v=202611222330';
+import { AVATARS } from './config.js?v=202611222345';
+import { h, wrapText } from './util.js?v=202611222345';
+import { Avatar } from './avatars.js?v=202611222345';
+import { drawRune } from './secrets.js?v=202611222345';
 
 const GOLD = 0xf5c56b;
 let seed = 11;
@@ -826,11 +826,11 @@ export function buildWorld(scene, data, hooks) {
       h('p', {}, 'Di Nicola Gobbini. Il primo volume della serie «I Quattro Guardiani», per ragazzi dai 9 ai 12 anni.'),
       h('p', { class: 'quote' }, 'Il mare ricorda ogni luce. Anche quelle che credevi spente.'),
       data.cartaceo ? h('p', { style: 'color:#f5c56b;clear:both' }, 'Disponibile su Amazon in cartaceo (copertina flessibile, 196 pagine) e in ebook (formato Kindle).') : data.acquisto ? h('p', { style: 'color:#f5c56b;clear:both' }, 'L\'ebook è disponibile su Amazon (formato Kindle). La versione cartacea arriva presto.') : c.giorni != null ? h('div', { class: 'big', style: 'font-size:32px;clear:both' }, c.giorni === 0 ? 'Esce oggi!' : `${c.giorni} ${c.giorni === 1 ? 'giorno' : 'giorni'} all'uscita`) : h('p', { style: 'color:#f5c56b;clear:both' }, `Uscita: ${c.periodo || 'presto'}. La data esatta arriva qui appena c'è.`),
-      data.cartaceo ? h('p', {}, h('a', { class: 'btn', href: data.cartaceo, target: '_blank', rel: 'noopener' }, 'Compra il libro cartaceo su Amazon'), ' ', data.acquisto ? h('a', { class: 'btn', href: data.acquisto, target: '_blank', rel: 'noopener' }, 'Compra l\'ebook') : null) : h('p', {}, h('button', { class: 'btn', type: 'button', onclick: () => hooks.openPanel(signupPanel(), 'Avvisami quando esce') }, data.acquisto ? 'Avvisami quando esce il cartaceo' : 'Avvisami all\'uscita'))];
+      data.cartaceo ? h('p', {}, h('a', { class: 'btn', href: data.cartaceo, target: '_blank', rel: 'noopener' }, 'Compra il libro cartaceo su Amazon'), ' ', data.acquisto ? h('a', { class: 'btn', href: data.acquisto, target: '_blank', rel: 'noopener' }, 'Compra l\'ebook') : null, ' ', h('button', { class: 'btn', type: 'button', onclick: () => hooks.openPanel(signupPanel(), 'Prossime uscite') }, 'Avvisami delle prossime uscite')) : h('p', {}, h('button', { class: 'btn', type: 'button', onclick: () => hooks.openPanel(signupPanel(), 'Avvisami quando esce') }, data.acquisto ? 'Avvisami quando esce il cartaceo' : 'Avvisami all\'uscita'))];
   }
   function signupPanel() {
-    return [h('h2', {}, data.acquisto ? 'Avvisami quando esce il cartaceo' : 'Avvisami quando esce'),
-      h('p', {}, data.acquisto ? 'L\'ebook è già disponibile. Lascia la tua email: ti scriviamo quando esce la versione cartacea. Nessuna pubblicità.' : 'Lascia la tua email e ricevi un messaggio il giorno in cui il libro esce. Niente altro.'),
+    return [h('h2', {}, data.cartaceo ? 'Avvisami delle prossime uscite della serie' : data.acquisto ? 'Avvisami quando esce il cartaceo' : 'Avvisami quando esce'),
+      h('p', {}, data.cartaceo ? 'Il primo libro è disponibile su Amazon, in cartaceo e in ebook. Lascia la tua email: ti scriviamo quando esce un nuovo libro della serie. Nessuna pubblicità.' : data.acquisto ? 'L\'ebook è già disponibile. Lascia la tua email: ti scriviamo quando esce la versione cartacea. Nessuna pubblicità.' : 'Lascia la tua email e ricevi un messaggio il giorno in cui il libro esce. Niente altro.'),
       h('p', { class: 'muted' }, 'Il modulo è per adulti: genitori, insegnanti, bibliotecari e lettori grandi. Se hai meno di 14 anni, chiedi a un genitore di iscriversi per te.'),
       data.modulo ? h('p', {}, h('a', { class: 'btn', href: data.modulo, target: '_blank', rel: 'noopener' }, 'Apri il modulo di iscrizione')) : h('p', { style: 'color:#f5c56b' }, 'Il modulo arriva a breve.')];
   }

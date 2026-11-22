@@ -1,20 +1,20 @@
 // Luminos · il mondo del libro. Punto di ingresso: collega mondo, personaggi, rete e interfaccia.
 import * as THREE from 'three';
-import { createFX } from './fx.js?v=202611222330';
-import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611222330';
-import { h } from './util.js?v=202611222330';
-import { audio } from './audio.js?v=202611222330';
-import { Avatar, previewRenderer } from './avatars.js?v=202611222330';
-import { buildWorld, zoneOf, regionOf } from './world.js?v=202611222330';
-import { createDiario } from './diario.js?v=202611222330';
-import { createPowers } from './powers.js?v=202611222330';
-import { createAttivita } from './attivita.js?v=202611222330';
-import { createLuoghi } from './luoghi.js?v=202611222330';
-import { RUNE_CACCIA } from './rune.js?v=202611222330';
-import { testo } from './testi.js?v=202611222330';
-import { createCollider, createPlayer } from './player.js?v=202611222330';
-import { createNet } from './net.js?v=202611222330';
-import { createUI } from './ui.js?v=202611222330';
+import { createFX } from './fx.js?v=202611222345';
+import { EMOTES, FRASI, AVATARS, NET, ZONES } from './config.js?v=202611222345';
+import { h } from './util.js?v=202611222345';
+import { audio } from './audio.js?v=202611222345';
+import { Avatar, previewRenderer } from './avatars.js?v=202611222345';
+import { buildWorld, zoneOf, regionOf } from './world.js?v=202611222345';
+import { createDiario } from './diario.js?v=202611222345';
+import { createPowers } from './powers.js?v=202611222345';
+import { createAttivita } from './attivita.js?v=202611222345';
+import { createLuoghi } from './luoghi.js?v=202611222345';
+import { RUNE_CACCIA } from './rune.js?v=202611222345';
+import { testo } from './testi.js?v=202611222345';
+import { createCollider, createPlayer } from './player.js?v=202611222345';
+import { createNet } from './net.js?v=202611222345';
+import { createUI } from './ui.js?v=202611222345';
 
 const isTouch = matchMedia('(pointer: coarse)').matches;
 if (new URLSearchParams(location.search).has('rec')) document.documentElement.classList.add('rec'); // riprese: senza interfaccia
@@ -572,9 +572,9 @@ requestAnimationFrame(frame);
   const now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const g = u ? Math.max(0, Math.round((u - today) / 86400000)) : null;
   $('introCount').textContent = data.cartaceo ? 'Il libro è disponibile su Amazon, in cartaceo e in ebook.' : data.acquisto ? 'L\'ebook è disponibile su Amazon. Il cartaceo arriva presto.' : g != null ? (g === 0 ? 'Il libro esce oggi!' : `Mancano ${g} ${g === 1 ? 'giorno' : 'giorni'} all'uscita del libro.`) : `Uscita: ${data.periodo || 'presto'}.`;
-  $('introSignup').onclick = () => ui.openPanel(world.signupPanel(), { label: 'Avvisami quando esce' });
+  $('introSignup').onclick = () => ui.openPanel(world.signupPanel(), { label: data.cartaceo ? 'Prossime uscite' : 'Avvisami quando esce' });
   if (data.cartaceo) {
-    $('introSignup').parentElement.hidden = true;
+    $('introSignup').textContent = 'Avvisami delle prossime uscite';
     $('introCount').append(' ', h('a', { href: data.cartaceo, target: '_blank', rel: 'noopener', style: 'color:#f5c56b' }, 'Cartaceo'), ' · ', h('a', { href: data.acquisto || data.cartaceo, target: '_blank', rel: 'noopener', style: 'color:#f5c56b' }, 'Ebook'));
   } else if (data.acquisto) {
     $('introSignup').textContent = 'Avvisami quando esce il cartaceo';
